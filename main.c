@@ -4,12 +4,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <time.h>
-
-typedef struct cell{
-    int value;
-    int row;
-    int col;
-} cell;
+#include "initializer.h"
 
 
 int main(){
@@ -23,7 +18,7 @@ int main(){
         return 0;
     }
 
-    int **sheet;
+    cell **sheet;
     initialize_sheet(&sheet, rows, cols);
 
     while(1){
@@ -51,4 +46,6 @@ int main(){
         printf("[%.2f s] (ok) > ", time);
 
     }
+
+    return 0;
 }
