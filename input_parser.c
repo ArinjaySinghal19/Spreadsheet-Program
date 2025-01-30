@@ -152,9 +152,12 @@ int handle_expression(ParsedInput *parsed, char *expr) {
     if (strncmp(expr, "SLEEP", 5) == 0) {
         parsed->expression_type = 2;
         parsed->is_sleep = 1;
-        if(!parse_cell(expr+5, &parsed->sleep_value[0], &parsed->sleep_value[1])) {
-            parsed->sleep_value[0] = -1;
-            parsed->sleep_value[1] = atoi(expr+5);
+        if(expr[5] != '(' || expr[strlen(expr)-1] != ')') {
+            return 0; // Invalid SLEEP function format
+        }
+        expr[strlen(expr)-1] = '\0';
+        if(!parse_value(expr+6, &parsed->sleep_value[0], &parsed->sleep_value[1])) {
+            return 0; // Invalid value
         }
         return 1;
     }
@@ -220,7 +223,11 @@ int handle_input(const char *input) {
         // Print the parsed input
         printf("Target cell: (%d, %d)\n", parsed.target[0], parsed.target[1]);
         printf("Expression type: %d\n", parsed.expression_type);
-        if (parsed.expression_type == 0) {
+        if(parsed.is_sleep) {
+            printf("Function: SLEEP\n");
+            printf("Value: (%d, %d)\n", parsed.sleep_value[0], parsed.sleep_value[1]);
+        }        
+        else if (parsed.expression_type == 0) {
             printf("Value: (%d, %d)\n", parsed.value[0], parsed.value[1]);
         } else if (parsed.expression_type == 1) {
             printf("Expression: (%d, %d) %c (%d, %d)\n", parsed.expression_cell_1[0], parsed.expression_cell_1[1],
