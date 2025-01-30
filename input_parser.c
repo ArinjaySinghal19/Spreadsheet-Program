@@ -19,7 +19,7 @@ typedef struct {
     int value[2]; // Value (if expression_type=0)
     int expression_cell_1[2]; // First cell in expression
     int expression_cell_2[2]; // Second cell in expression
-    char expression_operator; // Operator in expression ( 0: +, 1: -, 2: *, 3: /)
+    char expression_operator; // Operator in expression ( +, -, *, /)
     char function_operator; 
     int function_range[4]; // Function range (start row, start col, end row, end col)
 } ParsedInput;
@@ -47,6 +47,8 @@ int parse_cell(const char *cell, int *row, int *col) {
     int i = 0;
     while (isalpha(cell[i])) i++;
 
+    if(i==strlen(cell)) return 0; // Invalid cell reference
+
     char col_part[16], row_part[16];
     strncpy(col_part, cell, i);
     col_part[i] = '\0';
@@ -57,10 +59,15 @@ int parse_cell(const char *cell, int *row, int *col) {
     for (int j = 0; col_part[j] != '\0'; j++) {
         *col = *col * 26 + (toupper(col_part[j]) - 'A' + 1);
     }
+    if(*col == 0) return 0; // Invalid column part
     *col -= 1;
-    // Convert row part to index
+    if(row_part[0] == '\0') return 0; // Invalid row part
+    for(int i = 1; row_part[i] != '\0'; i++) {
+        if(!isdigit(row_part[i])) {
+            return 0;
+        }
+    }
     *row = atoi(row_part)-1; // Convert to 0-based indexing
-
     return 1;
 }
 
@@ -69,6 +76,9 @@ int parse_value(const char *cell, int *row, int *col) {
         return 1;
     }
     //check if string is a number
+    if(!isdigit(cell[0])) {
+        return 0;
+    }
     for(int i = 0; cell[i] != '\0'; i++) {
         if(!isdigit(cell[i])) {
             return 0;
@@ -154,7 +164,6 @@ int handle_expression(ParsedInput *parsed, char *expr) {
         parsed->expression_type = 1;
         int i = 0;
         while (expr[i] != '+' && expr[i] != '-' && expr[i] != '*' && expr[i] != '/') i++;
-        printf("Operator: %c\n", expr[i]);
         parsed->expression_operator = expr[i];
         //divide expression into two values
         expr[i] = '\0';
@@ -187,15 +196,14 @@ int parse_input(const char *input, ParsedInput *parsed) {
     if(expr[strlen(expr)-1] == '\n') {
         expr[strlen(expr)-1] = '\0';
     }
-    
-    printf("Cell: %s\n", cell);
-    printf("Expression: %s\n", expr);
     // Parse the cell reference
     if (!parse_cell(cell, &parsed->target[0], &parsed->target[1])) {
         return 0; // Invalid cell reference
     }
 
-    handle_expression(parsed, expr);
+    if(!handle_expression(parsed, expr)) {
+        return 0; // Invalid expression
+    }
     return 1; // Successfully parsed
 }
 
