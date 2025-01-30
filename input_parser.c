@@ -19,7 +19,7 @@ typedef struct {
     int value[2]; // Value (if expression_type=0)
     int expression_cell_1[2]; // First cell in expression
     int expression_cell_2[2]; // Second cell in expression
-    int expression_operator; // Operator in expression ( 0: +, 1: -, 2: *, 3: /)
+    char expression_operator; // Operator in expression ( 0: +, 1: -, 2: *, 3: /)
     char function_operator; 
     int function_range[4]; // Function range (start row, start col, end row, end col)
 } ParsedInput;
@@ -64,12 +64,28 @@ int parse_cell(const char *cell, int *row, int *col) {
     return 1;
 }
 
+int parse_value(const char *cell, int *row, int *col) {
+    if (parse_cell(cell, row, col)) {
+        return 1;
+    }
+    //check if string is a number
+    for(int i = 0; cell[i] != '\0'; i++) {
+        if(!isdigit(cell[i])) {
+            return 0;
+        }
+    }
+    *row = -1;
+    *col = atoi(cell);
+    return 1;
+}
+
 int evaluate_range(ParsedInput *parsed, const char *input) {
     // Parse the range (e.g., A1:A10)
     int i = 0;
     int j = 0;
     char end_cell[32], start_cell[32];
     if(sscanf(input, "%31[^:]:%31s", start_cell, end_cell) != 2) {
+    
         return 0; // Invalid range format
     }
     if(end_cell[strlen(end_cell)-1] == ')') {
@@ -88,61 +104,64 @@ int evaluate_range(ParsedInput *parsed, const char *input) {
     return 1;
 }
 
-int handle_expression(ParsedInput *parsed, const char *input) {
+int handle_expression(ParsedInput *parsed, char *expr) {
     // Expressions can be of broadly 3 types: values, arithmetic expressions, functions.
     // Functions can be MIN(Range), MAX(Range), AVG(Range), SUM(Range), STDEV(Range), SLEEP(Value).
 
     // Check if the expression is one of the functions
-    if (strncmp(input, "MIN", 3) == 0) {
+    if (strncmp(expr, "MIN", 3) == 0) {
         parsed->expression_type = 2;
         parsed->function_operator = 0;
-        evaluate_range(parsed, input+3);
+        evaluate_range(parsed, expr+3);
         return 1;
     }
-    if (strncmp(input, "MAX", 3) == 0) {
+    if (strncmp(expr, "MAX", 3) == 0) {
         parsed->expression_type = 2;
         parsed->function_operator = 1;
-        evaluate_range(parsed, input+3);
+        evaluate_range(parsed, expr+3);
         return 1;
     }
-    if (strncmp(input, "AVG", 3) == 0) {
+    if (strncmp(expr, "AVG", 3) == 0) {
         parsed->expression_type = 2;
         parsed->function_operator = 2;
-        evaluate_range(parsed, input+3);
+        evaluate_range(parsed, expr+3);
         return 1;
     }
-    if (strncmp(input, "SUM", 3) == 0) {
+    if (strncmp(expr, "SUM", 3) == 0) {
         parsed->expression_type = 2;
         parsed->function_operator = 3;
-        evaluate_range(parsed, input+3);
+        evaluate_range(parsed, expr+3);
         return 1;
     }
-    if (strncmp(input, "STDEV", 5) == 0) {
+    if (strncmp(expr, "STDEV", 5) == 0) {
         parsed->expression_type = 2;
         parsed->function_operator = 4;
-        evaluate_range(parsed, input+5);
+        evaluate_range(parsed, expr+5);
         return 1;
     }
-    if (strncmp(input, "SLEEP", 5) == 0) {
+    if (strncmp(expr, "SLEEP", 5) == 0) {
         parsed->expression_type = 2;
         parsed->is_sleep = 1;
-        if(!parse_cell(input+5, &parsed->sleep_value[0], &parsed->sleep_value[1])) {
+        if(!parse_cell(expr+5, &parsed->sleep_value[0], &parsed->sleep_value[1])) {
             parsed->sleep_value[0] = -1;
-            parsed->sleep_value[1] = atoi(input+5);
+            parsed->sleep_value[1] = atoi(expr+5);
         }
         return 1;
     }
 
     // Check if the expression is an arithmetic expression: check for the presence of operators (+, -, *, /)
-    if (strchr(input, '+') || strchr(input, '-') || strchr(input, '*') || strchr(input, '/')) {
+    if (strchr(expr, '+') || strchr(expr, '-') || strchr(expr, '*') || strchr(expr, '/')) {
         parsed->expression_type = 1;
         int i = 0;
-        while (input[i] != '+' && input[i] != '-' && input[i] != '*' && input[i] != '/') i++;
-        if (!parse_cell(input, &parsed->expression_cell_1[0], &parsed->expression_cell_1[1])) {
+        while (expr[i] != '+' && expr[i] != '-' && expr[i] != '*' && expr[i] != '/') i++;
+        printf("Operator: %c\n", expr[i]);
+        parsed->expression_operator = expr[i];
+        //divide expression into two values
+        expr[i] = '\0';
+        if (!parse_value(expr, &parsed->expression_cell_1[0], &parsed->expression_cell_1[1])) {
             return 0; // Invalid first cell
         }
-        parsed->expression_operator = i;
-        if (!parse_cell(input+i+1, &parsed->expression_cell_2[0], &parsed->expression_cell_2[1])) {
+        if (!parse_value(expr+i+1, &parsed->expression_cell_2[0], &parsed->expression_cell_2[1])) {
             return 0; // Invalid second cell
         }
         return 1;
@@ -150,9 +169,8 @@ int handle_expression(ParsedInput *parsed, const char *input) {
 
     // If not a function or expression, then it must be a value
     parsed->expression_type = 0;
-    if (!parse_cell(input, &parsed->value[0], &parsed->value[1])) {
-        parsed->value[0] = -1;
-        parsed->value[1] = atoi(input);
+    if (!parse_value(expr, &parsed->value[0], &parsed->value[1])) {
+        return 0; // Invalid value
     }
     return 1;
 }
@@ -169,6 +187,9 @@ int parse_input(const char *input, ParsedInput *parsed) {
     if(expr[strlen(expr)-1] == '\n') {
         expr[strlen(expr)-1] = '\0';
     }
+    
+    printf("Cell: %s\n", cell);
+    printf("Expression: %s\n", expr);
     // Parse the cell reference
     if (!parse_cell(cell, &parsed->target[0], &parsed->target[1])) {
         return 0; // Invalid cell reference
@@ -192,9 +213,8 @@ int handle_input(const char *input) {
         printf("Target cell: (%d, %d)\n", parsed.target[0], parsed.target[1]);
         printf("Expression type: %d\n", parsed.expression_type);
         if (parsed.expression_type == 0) {
-            printf("Value: %d\n", parsed.value[1]);
+            printf("Value: (%d, %d)\n", parsed.value[0], parsed.value[1]);
         } else if (parsed.expression_type == 1) {
-            
             printf("Expression: (%d, %d) %c (%d, %d)\n", parsed.expression_cell_1[0], parsed.expression_cell_1[1],
                    parsed.expression_operator, parsed.expression_cell_2[0], parsed.expression_cell_2[1]);
         } else if (parsed.expression_type == 2) {
