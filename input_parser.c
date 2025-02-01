@@ -219,6 +219,8 @@ int handle_input(const char *input) {
         return EXIT_PROGRAM; // Exit program
     }
     ParsedInput parsed;
+    // initialize parsed
+    parsed.is_sleep = 0;
     if (parse_input(input, &parsed)) {
         // Print the parsed input
         printf("Target cell: (%d, %d)\n", parsed.target[0], parsed.target[1]);
