@@ -5,13 +5,16 @@
 #include <stdbool.h>
 #include <time.h>
 #include "initializer.h"
+#include "input_parser.h"
 
+ParsedInput parsed;
 
 int main(){
 
     int rows, cols;
     scanf("%d %d", &rows, &cols);
     getchar();
+    double start = clock();
 
     if(!valid_input(rows, cols)){
         printf("Invalid input\n");
@@ -20,30 +23,37 @@ int main(){
 
     cell **sheet;
     initialize_sheet(&sheet, rows, cols);
-
+    double end = clock();
+    double time = (end - start) / CLOCKS_PER_SEC;
+    printf("[%.2fms] (ok) > ", time);
     while(1){
-        double start = clock();
 
-        char *input = (char *)malloc(100 * sizeof(char));
-        fgets(input, 100, stdin);
-
-        if(invalid_input(input)){
-            display_sheet(sheet, rows, cols);
-            double end = clock();
-            double time = (end - start) / CLOCKS_PER_SEC;
-            printf("[%.2f s] (Invalid Input) > ", time);
+        char input[256];
+        for(int i=0; i<256; i++) input[i]='\0';
+        fgets(input, sizeof(input), stdin);
+        start = clock();
+        if(strcmp(input, "q\n")==0 || strcmp(input, "Q\n")==0) {
+            printf("Exiting program...");
+            return 0;
+        }
+        int status = parse_input(input, &parsed);
+        if(!status){
+            // display_sheet(sheet, rows, cols);
+            end = clock();
+            time = (end - start) / CLOCKS_PER_SEC;
+            printf("[%.2fms] (Invalid Input) > ", time);
             continue;
         }
 
-        process_input(&input, &sheet, rows, cols);
+        // process_input(&parsed, &sheet, rows, cols);
 
-        display_sheet(sheet, rows, cols);
+        // display_sheet(sheet, rows, cols);
 
-        double end = clock();
+        end = clock();
 
-        double time = (end - start) / CLOCKS_PER_SEC;
+        time = (end - start) / CLOCKS_PER_SEC;
 
-        printf("[%.2f s] (ok) > ", time);
+        printf("[%.2fms] (ok) > ", time);
 
     }
 

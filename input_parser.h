@@ -191,7 +191,7 @@ int handle_expression(ParsedInput *parsed, char *expr) {
 // Parse the input into a ParsedInput structure
 int parse_input(const char *input, ParsedInput *parsed) {
     char cell[32], expr[128];
-
+    parsed->is_sleep = 0;
     // Extract cell reference and value/expression
     if (sscanf(input, "%31[^=]=%127s", cell, expr) != 2) {
         return 0; // Invalid format
@@ -220,7 +220,6 @@ int handle_input(const char *input) {
     }
     ParsedInput parsed;
     // initialize parsed
-    parsed.is_sleep = 0;
     if (parse_input(input, &parsed)) {
         // Print the parsed input
         printf("Target cell: (%d, %d)\n", parsed.target[0], parsed.target[1]);
@@ -244,18 +243,4 @@ int handle_input(const char *input) {
     // If no valid input, show an error
     printf("Error: Unrecognized command\n");
     return CONTINUE_PROGRAM;
-}
-
-int main() {
-    char input[256];
-
-    printf("Spreadsheet Program (Enter 'q' to quit):\n");
-    while (1) {
-        printf("> ");
-        scanf("%s", input); // Read input from the user
-        if (handle_input(input) == EXIT_PROGRAM) break; // Exit if "q" is entered
-    }
-
-    printf("Exiting program...\n");
-    return 0;
 }
