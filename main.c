@@ -6,6 +6,8 @@
 #include <time.h>
 #include "initializer.h"
 #include "input_parser.h"
+#include "input_processing.h"
+#include "display_sheet.h"
 
 ParsedInput parsed;
 
@@ -23,6 +25,7 @@ int main(){
 
     cell **sheet;
     initialize_sheet(&sheet, rows, cols);
+    display_sheet(&sheet, rows, cols);
     double end = clock();
     double time = (end - start) / CLOCKS_PER_SEC;
     printf("[%.2fms] (ok) > ", time);
@@ -38,16 +41,16 @@ int main(){
         }
         int status = parse_input(input, &parsed);
         if(!status){
-            // display_sheet(sheet, rows, cols);
+            display_sheet(&sheet, rows, cols);
             end = clock();
             time = (end - start) / CLOCKS_PER_SEC;
             printf("[%.2fms] (Invalid Input) > ", time);
             continue;
         }
 
-        // process_input(&parsed, &sheet, rows, cols);
+        process_input(&parsed, &sheet, rows, cols);
 
-        // display_sheet(sheet, rows, cols);
+        display_sheet(&sheet, rows, cols);
 
         end = clock();
 
