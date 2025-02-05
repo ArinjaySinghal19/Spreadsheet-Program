@@ -4,7 +4,6 @@
 // #include "input_parser.h"
 #include<math.h>
 #include<unistd.h>
-
 // typedef struct {
 //     int target[2]; // Target cell (row, col)
 //     int expression_type; // 0 for value, 1 for expression, 2 for function
@@ -17,12 +16,11 @@
 //     char function_operator; {min: 0, max: 1, avg: 2, sum: 3, stdev: 4, sleep: 5}
 //     int function_range[4]; // Function range (start row, start col, end row, end col)
 // } ParsedInput;
-
 void process_input(ParsedInput * parsed, cell *** sheet, int rows, int cols) {
     if(parsed->is_sleep) {
-        sleep(parsed->sleep_value);
         int val = (parsed->sleep_value[0]!=-1 ? (*sheet)[parsed->sleep_value[0]][parsed->sleep_value[1]].value : parsed->sleep_value[1]);
-        (*sheet)[parsed->target[0]][parsed->target[1]].value = parsed->sleep_value[1];
+        sleep(val);
+        (*sheet)[parsed->target[0]][parsed->target[1]].value = val;
     }
     else if(parsed->expression_type == 0){
         int val = (parsed->value[0]!=-1 ? (*sheet)[parsed->value[0]][parsed->value[1]].value : parsed->value[1]);
@@ -81,7 +79,6 @@ void process_input(ParsedInput * parsed, cell *** sheet, int rows, int cols) {
                 }
             }
             (*sheet)[parsed->target[0]][parsed->target[1]].value = sum;
-
         }else if(parsed->function_operator == 4){ //stdev
             int sum = 0;
             int count = 0;
