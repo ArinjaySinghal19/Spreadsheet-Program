@@ -3,6 +3,7 @@
 // #include "initializer.h"
 // #include "input_parser.h"
 #include<math.h>
+#include<unistd.h>
 
 // typedef struct {
 //     int target[2]; // Target cell (row, col)
@@ -19,7 +20,7 @@
 
 void process_input(ParsedInput * parsed, cell *** sheet, int rows, int cols) {
     if(parsed->is_sleep) {
-        // sleep(parsed->sleep_value);
+        sleep(parsed->sleep_value);
         int val = (parsed->sleep_value[0]!=-1 ? (*sheet)[parsed->sleep_value[0]][parsed->sleep_value[1]].value : parsed->sleep_value[1]);
         (*sheet)[parsed->target[0]][parsed->target[1]].value = parsed->sleep_value[1];
     }
