@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "initializer.h"
 
 // Define constants for program flow
 #define EXIT_PROGRAM 1
@@ -10,18 +11,6 @@
 //If the first indice is not -1, then it's the row, seocond indice is the column.
 
 // Structure to hold parsed input
-typedef struct {
-    int target[2]; // Target cell (row, col)
-    int expression_type; // 0 for value, 1 for expression, 2 for function
-    int is_sleep; // 1 if SLEEP function, 0 otherwise
-    int sleep_value[2]; // Sleep value (if is_sleep=1)
-    int value[2]; // Value (if expression_type=0)
-    int expression_cell_1[2]; // First cell in expression
-    int expression_cell_2[2]; // Second cell in expression
-    char expression_operator; // Operator in expression ( +, -, *, /)
-    char function_operator; 
-    int function_range[4]; // Function range (start row, start col, end row, end col)
-} ParsedInput;
 
 // Check if a string is a valid cell reference (e.g., "A1", "AA10")
 int is_valid_cell(const char *cell) {
