@@ -164,7 +164,33 @@ void recalculate(cell **sheet, Node *top_order){
     dirty_cells = 0;
 }
 
+void update_dependencies(cell **sheet, int row, int col){
+    free_parents(sheet, row, col);
+    ParsedInput parsed = sheet[row][col].parsed;
+    if(parsed.expression_type == 0) return;
+    if(parsed.expression_type == 1){
+        int row1 = parsed.expression_cell_1[0];
+        int col1 = parsed.expression_cell_1[1];
+        int row2 = parsed.expression_cell_2[0];
+        int col2 = parsed.expression_cell_2[1];
+        if(row1 != -1) add_dependency(sheet, row1, col1, row, col);
+        if(row2 != -1) add_dependency(sheet, row2, col2, row, col);
+    }
+    if(parsed.expression_type == 2){
+        int st_row = parsed.function_range[0];
+        int st_col = parsed.function_range[1];
+        int end_row = parsed.function_range[2];
+        int end_col = parsed.function_range[3];
+        for(int i = st_row; i<=end_row; i++){
+            for(int j=0; j<=end_col; j++){
+                add_dependency(sheet, i, j, row, col);
+            }
+        }
+    }
+}
+
 void change(cell **sheet, int row, int col){
+    update_dependencies(sheet, row, col);
     mark_dirty(sheet, row, col);
     Node *top_order = topological_order(sheet, row, col);
     if(top_order == NULL){
