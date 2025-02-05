@@ -36,7 +36,6 @@ int main(){
         fgets(input, sizeof(input), stdin);
         start = clock();
         if(strcmp(input, "q\n")==0 || strcmp(input, "Q\n")==0) {
-            printf("Exiting program...");
             return 0;
         }
         int status = parse_input(input, &parsed);
