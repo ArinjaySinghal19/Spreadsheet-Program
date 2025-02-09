@@ -74,10 +74,9 @@ int main(){
         fgets(input, sizeof(input), stdin);
         start = clock();
         if(strcmp(input, "q\n")==0 || strcmp(input, "Q\n")==0) {
-            return 0;
+            break;
         }
         int status = parse_input(input, &parsed);
-        sheet[parsed.target[0]][parsed.target[1]].parsed = parsed;
         if(!status){
             display_sheet(&sheet, rows, cols);
             end = clock();
@@ -85,8 +84,28 @@ int main(){
             printf("[%.2fms] (Invalid Input) > ", time);
             continue;
         }
+        int op_row = parsed.target[0];
+        int op_col = parsed.target[1];
+        ParsedInput previous_parsed;
+        int previous_value;
+        if(sheet[op_row][op_col].dependencies != NULL){
+            previous_parsed = sheet[op_row][op_col].parsed;
+            previous_value = sheet[op_row][op_col].value;
+        }
+        sheet[op_row][op_col].parsed = parsed;
 
-        change(sheet, parsed.target[0], parsed.target[1]);
+        int success = change(sheet, op_row, op_col);
+
+        if(!success){
+            sheet[op_row][op_col].parsed = previous_parsed;
+            update_dependencies(sheet, op_row, op_col);
+            sheet[op_row][op_col].value = previous_value;
+            display_sheet(&sheet, rows, cols);
+            end = clock();
+            time = (end - start) / CLOCKS_PER_SEC;
+            printf("[%.2fms] (Cycle Detected) > ", time);
+            continue;
+        }
 
         display_sheet(&sheet, rows, cols);
 
@@ -97,6 +116,8 @@ int main(){
         printf("[%.2fms] (ok) > ", time);
 
     }
+
+    free_sheet(sheet, rows, cols);
 
     return 0;
 }
