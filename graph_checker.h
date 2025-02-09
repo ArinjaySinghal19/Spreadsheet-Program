@@ -180,6 +180,7 @@ void update_dependencies(cell **sheet, int row, int col){
         int row1 = parsed.value[0];
         int col1 = parsed.value[1];
         if(row1 != -1) add_dependency(sheet, row1, col1, row, col);
+        return;
     }
     if(parsed.expression_type == 1){
         int row1 = parsed.expression_cell_1[0];
@@ -188,8 +189,15 @@ void update_dependencies(cell **sheet, int row, int col){
         int col2 = parsed.expression_cell_2[1];
         if(row1 != -1) add_dependency(sheet, row1, col1, row, col);
         if(row2 != -1) add_dependency(sheet, row2, col2, row, col);
+        return;
     }
     if(parsed.expression_type == 2){
+        if(parsed.is_sleep){
+            int row1 = parsed.sleep_value[0];
+            int col1 = parsed.sleep_value[1];
+            if(row1 != -1) add_dependency(sheet, row1, col1, row, col);
+            return;
+        }
         int st_row = parsed.function_range[0];
         int st_col = parsed.function_range[1];
         int end_row = parsed.function_range[2];
@@ -199,6 +207,7 @@ void update_dependencies(cell **sheet, int row, int col){
                 add_dependency(sheet, i, j, row, col);
             }
         }
+        return;
     }
 }
 
