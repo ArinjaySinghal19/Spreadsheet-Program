@@ -26,7 +26,6 @@ typedef struct cell{
     int row;
     int col;
     Node *dependencies;
-    int num_dependencies;
     Node *depends_on;
     bool is_dirty;
     int dirty_parents;
@@ -68,6 +67,10 @@ void initialize_sheet(cell ***sheet, int rows, int cols){
             (*sheet)[i][j].value = 0;
             (*sheet)[i][j].row = i;
             (*sheet)[i][j].col = j;
+            (*sheet)[i][j].dependencies = NULL;
+            (*sheet)[i][j].depends_on = NULL;
+            (*sheet)[i][j].is_dirty = false;
+            (*sheet)[i][j].dirty_parents = 0;
         }
     }
 }
