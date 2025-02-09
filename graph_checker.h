@@ -6,9 +6,12 @@
 #include "input_parser.h"
 #include "input_processing.h"
 
-int dirty_cells = 0;    // global variable to keep track of dirty cells
+int dirty_cells = 0;
+bool cycle = false;
 
+Node *dirty_head = NULL;
 
+void print_dependencies(cell **sheet, int row, int col);
 
 
 void add_dependency(cell **sheet, int row, int col, int dep_row, int dep_col){
@@ -20,12 +23,9 @@ void add_dependency(cell **sheet, int row, int col, int dep_row, int dep_col){
         sheet[row][col].dependencies = new_node;
     }else{
         Node *temp = sheet[row][col].dependencies;
-        while(temp->next != NULL){
-            temp = temp->next;
-        }
-        temp->next = new_node;
+        new_node->next = temp;
+        sheet[row][col].dependencies = new_node;
     }
-    sheet[row][col].num_dependencies++;
     Node *new_node_dep = (Node *)malloc(sizeof(Node));
     new_node_dep->row = row;
     new_node_dep->col = col;
@@ -41,24 +41,26 @@ void add_dependency(cell **sheet, int row, int col, int dep_row, int dep_col){
 
 void free_parents(cell **sheet, int row, int col){
     Node *temp = sheet[row][col].depends_on;
+    if (temp == NULL) return;
     while(temp != NULL){
         int parent_row = temp->row;
         int parent_col = temp->col;
         Node *temp_dep = sheet[parent_row][parent_col].dependencies;
         Node *prev = NULL;
         while(temp_dep != NULL){
+            Node *next_dep = temp_dep->next;
             if(temp_dep->row == row && temp_dep->col == col){
-                if(prev == NULL){
-                    sheet[parent_row][parent_col].dependencies = temp_dep->next;
-                }else{
-                    prev->next = temp_dep->next;
-                }
-                sheet[parent_row][parent_col].num_dependencies--;
-                free(temp_dep);
-                break;
+            if(prev == NULL){
+                sheet[parent_row][parent_col].dependencies = next_dep;
+            }else{
+                prev->next = next_dep;
+            }
+            free(temp_dep);
+            temp_dep = next_dep;
+            continue;   
             }
             prev = temp_dep;
-            temp_dep = temp_dep->next;
+            temp_dep = next_dep;
         }
         temp = temp->next;
     }
@@ -75,6 +77,11 @@ void free_parents(cell **sheet, int row, int col){
 void mark_dirty(cell **sheet, int row, int col){
     sheet[row][col].is_dirty = true;
     dirty_cells++;
+    Node *new_node = (Node *)malloc(sizeof(Node));
+    new_node->row = row;
+    new_node->col = col;
+    new_node->next = dirty_head;
+    dirty_head = new_node;
     Node *temp = sheet[row][col].dependencies;
     while(temp != NULL){
         sheet[temp->row][temp->col].dirty_parents++;
@@ -123,9 +130,12 @@ Node* topological_order(cell **sheet, int init_row, int init_col){
         temp = temp->next;
     }
     if(count == dirty_cells){
+        dirty_cells = 0;
         return top_order;
     }else{
-        free_top_order(top_order);
+        dirty_cells = 0;
+        if(top_order!=NULL) free_top_order(top_order);
+        cycle = true;
         return NULL;
     }
 }
@@ -161,13 +171,16 @@ void recalculate(cell **sheet, Node *top_order){
         temp = temp->next;
     }
     free_top_order(top_order);
-    dirty_cells = 0;
 }
 
 void update_dependencies(cell **sheet, int row, int col){
     free_parents(sheet, row, col);
     ParsedInput parsed = sheet[row][col].parsed;
-    if(parsed.expression_type == 0) return;
+    if(parsed.expression_type == 0) {
+        int row1 = parsed.value[0];
+        int col1 = parsed.value[1];
+        if(row1 != -1) add_dependency(sheet, row1, col1, row, col);
+    }
     if(parsed.expression_type == 1){
         int row1 = parsed.expression_cell_1[0];
         int col1 = parsed.expression_cell_1[1];
@@ -182,22 +195,46 @@ void update_dependencies(cell **sheet, int row, int col){
         int end_row = parsed.function_range[2];
         int end_col = parsed.function_range[3];
         for(int i = st_row; i<=end_row; i++){
-            for(int j=0; j<=end_col; j++){
+            for(int j=st_col; j<=end_col; j++){
                 add_dependency(sheet, i, j, row, col);
             }
         }
     }
 }
 
-void change(cell **sheet, int row, int col){
+void free_dirty_array(cell **sheet){
+    Node *temp = dirty_head;
+    while(temp != NULL){
+        int row = temp->row;
+        int col = temp->col;
+        sheet[row][col].is_dirty = false;
+        sheet[row][col].dirty_parents = 0;
+        Node *next = temp->next;
+        free(temp);
+        temp = next;
+    }
+    dirty_head = NULL;
+}
+
+int change(cell **sheet, int row, int col){
+    cycle = false;
     update_dependencies(sheet, row, col);
+    Node *temp = (Node *)malloc(sizeof(Node));
+    temp->row = row;
+    temp->col = col;
+    temp->next = NULL;
+    if(dirty_head!=NULL) free_dirty_array(sheet);
+    dirty_head = temp;
     mark_dirty(sheet, row, col);
     Node *top_order = topological_order(sheet, row, col);
-    if(top_order == NULL){
-        printf("Cycle detected\n");
-        return;
+    if(dirty_head!=NULL) free_dirty_array(sheet);
+    if(cycle){
+        free_top_order(top_order);
+        return 0;
     }
     recalculate(sheet, top_order);
+
+    return 1;
 }
 
 
