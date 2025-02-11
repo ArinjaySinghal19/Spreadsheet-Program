@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "initializer.h"
+#include "display_sheet.h"
 
 // Define constants for program flow
 #define EXIT_PROGRAM 1
