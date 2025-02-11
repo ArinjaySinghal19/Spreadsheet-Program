@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <time.h>
 #include "graph_checker.h"
-#include "display_sheet.h"
 
 ParsedInput parsed;
 
@@ -24,10 +23,10 @@ int main(){
         printf("Invalid input\n");
         return 0;
     }
-
+    int sr = 0, sc = 0, er = min(10, rows), ec = min(10, cols);
     cell **sheet;
     initialize_sheet(&sheet, rows, cols);
-    display_sheet(&sheet, rows, cols);
+    display_sheet(&sheet, rows, cols, sr, sc, er ,ec);
     double end = clock();
     double time = (end - start) / CLOCKS_PER_SEC;
     printf("[%.2fms] (ok) > ", time);
@@ -42,7 +41,7 @@ int main(){
         }
         int status = parse_input(input, &parsed);
         if(!status){
-            display_sheet(&sheet, rows, cols);
+            display_sheet(&sheet, rows, cols, sr, sc, er ,ec);
             end = clock();
             time = (end - start) / CLOCKS_PER_SEC;
             printf("[%.2fms] (Invalid Input) > ", time);
@@ -64,14 +63,14 @@ int main(){
             sheet[op_row][op_col].parsed = previous_parsed;
             update_dependencies(sheet, op_row, op_col);
             sheet[op_row][op_col].value = previous_value;
-            display_sheet(&sheet, rows, cols);
+            display_sheet(&sheet, rows, cols, sr, sc, er ,ec);
             end = clock();
             time = (end - start) / CLOCKS_PER_SEC;
             printf("[%.2fms] (Cycle Detected) > ", time);
             continue;
         }
 
-        display_sheet(&sheet, rows, cols);
+        display_sheet(&sheet, rows, cols, sr, sc, er ,ec);
 
         end = clock();
 
