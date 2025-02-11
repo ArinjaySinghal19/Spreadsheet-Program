@@ -1,6 +1,8 @@
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
+#include "initializer.h"
+
 
 char* int2col(int col) {
     char* ans = (char*)malloc(4 * sizeof(char));
@@ -25,16 +27,20 @@ char* int2col(int col) {
     
 }
 
-void display_sheet(cell *** sheet, int rows, int cols){
+void display_sheet(cell *** sheet, int rows, int cols, int sr, int sc, int er, int ec){
     printf("\t");
-    for(int j=0; j<cols; j++){
+    for(int j=sc; j<ec; j++){
         printf("%s\t", int2col(j+1));
     }
     printf("\n");
-    for(int i = 0; i < rows; i++){
+    for(int i = sr; i < er; i++){
         printf("%d\t", i+1);
-        for(int j = 0; j < cols; j++){
-            printf("%d\t", (*sheet)[i][j].value);
+        for(int j = sc; j < ec; j++){
+            if((*sheet)[i][j].value == INT32_MIN){
+                printf("ERR\t");
+            }else{
+                printf("%d\t", (*sheet)[i][j].value);
+            }
         }
         printf("\n");
     }
