@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>   
+#include <stdbool.h>
 
 typedef struct Node{
     int row;
@@ -94,3 +94,9 @@ void free_sheet(cell **sheet, int row, int col){
     }
     free(sheet);
 }
+
+
+int min(int a, int b){
+    return a < b ? a : b;
+}
+
