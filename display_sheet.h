@@ -1,9 +1,6 @@
 #include<stdio.h>
 #include<string.h>
-// #include<initializer.h>
-// #include "input_parser.h"
-
-// display_sheet(sheet, rows, cols);
+#include<stdlib.h>
 
 char* int2col(int col) {
     char* ans = (char*)malloc(4 * sizeof(char));
@@ -26,17 +23,6 @@ char* int2col(int col) {
     free(ans);
     return colStr;
     
-}
-
-int col2int(char* col) {
-    int result = 0;
-    for (int i = 0; col[i] != '\0'; i++) {
-        if(col[i] < 'A' || col[i] > 'Z') {
-            return -1;
-        }
-        result = result * 26 + col[i] - 'A' + 1;
-    }
-    return result;
 }
 
 void display_sheet(cell *** sheet, int rows, int cols){
