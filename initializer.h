@@ -11,14 +11,27 @@ typedef struct Node{
 typedef struct {
     int target[2]; // Target cell (row, col)
     int expression_type; // 0 for value, 1 for expression, 2 for function
-    int is_sleep; // 1 if SLEEP function, 0 otherwise
-    int sleep_value[2]; // Sleep value (if is_sleep=1)
-    int value[2]; // Value (if expression_type=0)
-    int expression_cell_1[2]; // First cell in expression
-    int expression_cell_2[2]; // Second cell in expression
-    char expression_operator; // Operator in expression ( +, -, *, /)
-    char function_operator; 
-    int function_range[4]; // Function range (start row, start col, end row, end col)
+    union {
+        struct {
+            int value[2]; // Value (if expression_type=0)
+        } value_data;
+
+        struct {
+            int expression_cell_1[2]; // First cell in expression
+            int expression_cell_2[2]; // Second cell in expression
+            char expression_operator; // Operator in expression ( +, -, *, /)
+        } expression_data;
+
+        struct {
+            char function_operator; 
+            int function_range[4]; // Function range (start row, start col, end row, end col)
+        } function_data;
+
+        struct {
+            int is_sleep; // 1 if SLEEP function, 0 otherwise
+            int sleep_value[2]; // Sleep value (if is_sleep=1)
+        } sleep_data;
+    } content;
 } ParsedInput;
 
 typedef struct cell{
