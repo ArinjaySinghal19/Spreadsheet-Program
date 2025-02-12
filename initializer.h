@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <ctype.h>
+#include <string.h>
 
 typedef struct Node{
     int row;
@@ -111,6 +113,11 @@ void free_sheet(cell **sheet, int row, int col){
 int min(int a, int b){
     return a < b ? a : b;
 }
+
+int max(int a, int b){
+    return a > b ? a : b;
+}
+
 // Check if a string is a valid cell reference (e.g., "A1", "AA10")
 int is_valid_cell(const char *cell) {
     int i = 0;
