@@ -6,10 +6,10 @@
 #include <time.h>
 #include "graph_checker.h"
 
+#define TURN_ON_DISPLAY 11
+#define TURN_OFF_DISPLAY 10
+
 ParsedInput parsed;
-
-
-
 
 
 int main(){
@@ -23,16 +23,15 @@ int main(){
         printf("Invalid input\n");
         return 0;
     }
-    int sr = 0, sc = 0, er = min(10, rows), ec = min(10, cols);
+    int sr = 0, sc = 0, toggle_display = 1;
     cell **sheet;
     initialize_sheet(&sheet, rows, cols);
-    display_sheet(&sheet, rows, cols, sr, sc, er ,ec);
+    display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
     double end = clock();
     double time = (end - start) / CLOCKS_PER_SEC;
     printf("[%.2fms] (ok) > ", time);
+    char input[256];
     while(1){
-
-        char input[256];
         for(int i=0; i<256; i++) input[i]='\0';
         fgets(input, sizeof(input), stdin);
         start = clock();
@@ -40,11 +39,35 @@ int main(){
             break;
         }
         int status = parse_input(input, &parsed);
-        if(!status){
-            display_sheet(&sheet, rows, cols, sr, sc, er ,ec);
+
+        if(status>=6 && status<=11){
+            if(!process_display(status, &toggle_display, &sr, &sc, rows, cols)){
+                status=0;
+            }else{
+                status = 2;
+            }
+        }
+        if(status == 12){
+            printf("%s", input);
+            if(input[strlen(input)-1] == '\n'){
+                input[strlen(input)-1] = '\0';
+            }
+            if(!parse_cell(input + 10, &sr, &sc)){
+                printf("%s", input);
+                status=0;
+            }else{
+            status = 2;
+            }
+        }
+        if(status==0 || status == 2){
+            display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
             end = clock();
             time = (end - start) / CLOCKS_PER_SEC;
-            printf("[%.2fms] (Invalid Input) > ", time);
+            if(status==0){
+                printf("[%.2fms] (Invalid Input) > ", time);
+            }else{
+                printf("[%.2fms] (ok) > ", time);
+            }
             continue;
         }
         int op_row = parsed.target[0];
@@ -63,14 +86,14 @@ int main(){
             sheet[op_row][op_col].parsed = previous_parsed;
             update_dependencies(sheet, op_row, op_col);
             sheet[op_row][op_col].value = previous_value;
-            display_sheet(&sheet, rows, cols, sr, sc, er ,ec);
+            display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
             end = clock();
             time = (end - start) / CLOCKS_PER_SEC;
             printf("[%.2fms] (Cycle Detected) > ", time);
             continue;
         }
 
-        display_sheet(&sheet, rows, cols, sr, sc, er ,ec);
+        display_sheet(&sheet, rows, toggle_display, cols, sr, sc);
 
         end = clock();
 

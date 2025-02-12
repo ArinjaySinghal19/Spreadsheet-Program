@@ -112,4 +112,49 @@ void free_sheet(cell **sheet, int row, int col){
 int min(int a, int b){
     return a < b ? a : b;
 }
+// Check if a string is a valid cell reference (e.g., "A1", "AA10")
+int is_valid_cell(const char *cell) {
+    int i = 0;
 
+    // Ensure the column part contains letters
+    while (isalpha(cell[i])) i++;
+    if (i == 0) return 0; // No letters present
+
+    // Ensure the row part contains digits
+    while (cell[i]) {
+        if (!isdigit(cell[i])) return 0; // Invalid character in row part
+        i++;
+    }
+    return 1; // Valid cell reference
+}
+
+// Parse a cell reference (e.g., "AA10" -> row=9, col=26)
+int parse_cell(const char *cell, int *row, int *col) {
+    if (!is_valid_cell(cell)) return 0;
+
+    int i = 0;
+    while (isalpha(cell[i])) i++;
+
+    if(i==strlen(cell)) return 0; // Invalid cell reference
+
+    char col_part[16], row_part[16];
+    strncpy(col_part, cell, i);
+    col_part[i] = '\0';
+    strcpy(row_part, cell + i);
+
+    // Convert column part to index (e.g., "A"=0, "AA"=26)
+    *col = 0;
+    for (int j = 0; col_part[j] != '\0'; j++) {
+        *col = *col * 26 + (toupper(col_part[j]) - 'A' + 1);
+    }
+    if(*col == 0) return 0; // Invalid column part
+    *col -= 1;
+    if(row_part[0] == '\0') return 0; // Invalid row part
+    for(int i = 1; row_part[i] != '\0'; i++) {
+        if(!isdigit(row_part[i])) {
+            return 0;
+        }
+    }
+    *row = atoi(row_part)-1; // Convert to 0-based indexing
+    return 1;
+}

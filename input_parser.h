@@ -12,53 +12,6 @@
 
 // Structure to hold parsed input
 
-// Check if a string is a valid cell reference (e.g., "A1", "AA10")
-int is_valid_cell(const char *cell) {
-    int i = 0;
-
-    // Ensure the column part contains letters
-    while (isalpha(cell[i])) i++;
-    if (i == 0) return 0; // No letters present
-
-    // Ensure the row part contains digits
-    while (cell[i]) {
-        if (!isdigit(cell[i])) return 0; // Invalid character in row part
-        i++;
-    }
-    return 1; // Valid cell reference
-}
-
-// Parse a cell reference (e.g., "AA10" -> row=9, col=26)
-int parse_cell(const char *cell, int *row, int *col) {
-    if (!is_valid_cell(cell)) return 0;
-
-    int i = 0;
-    while (isalpha(cell[i])) i++;
-
-    if(i==strlen(cell)) return 0; // Invalid cell reference
-
-    char col_part[16], row_part[16];
-    strncpy(col_part, cell, i);
-    col_part[i] = '\0';
-    strcpy(row_part, cell + i);
-
-    // Convert column part to index (e.g., "A"=0, "AA"=26)
-    *col = 0;
-    for (int j = 0; col_part[j] != '\0'; j++) {
-        *col = *col * 26 + (toupper(col_part[j]) - 'A' + 1);
-    }
-    if(*col == 0) return 0; // Invalid column part
-    *col -= 1;
-    if(row_part[0] == '\0') return 0; // Invalid row part
-    for(int i = 1; row_part[i] != '\0'; i++) {
-        if(!isdigit(row_part[i])) {
-            return 0;
-        }
-    }
-    *row = atoi(row_part)-1; // Convert to 0-based indexing
-    return 1;
-}
-
 int parse_value(const char *cell, int *row, int *col) {
     if (parse_cell(cell, row, col)) {
         return 1;
@@ -175,15 +128,39 @@ int handle_expression(ParsedInput *parsed, char *expr) {
     return 1;
 }
 
+int handle_display(const char *input) {
+    if(strcmp(input, "disable_output\n") == 0) {
+        return 10;
+    }else if(strcmp(input, "enable_output\n") == 0) {
+        return 11;
+    }
+    else if(strcmp(input, "w\n") == 0) {
+        return 6;
+    }else if(strcmp(input, "a\n") == 0) {
+        return 7;
+    }else if(strcmp(input, "s\n") == 0) {
+        return 8;
+    }else if(strcmp(input, "d\n") == 0) {
+        return 9;
+    }else if(strncmp(input, "scroll_to", 9) == 0) {
+        return 12;
+    }else{
+        return 0;
+    }
+}
+
 
 // Parse the input into a ParsedInput structure
-int parse_input(const char *input, ParsedInput *parsed) {
+int parse_input(char *input, ParsedInput *parsed) {
     char cell[32], expr[128];
     parsed->content.sleep_data.is_sleep = 0;
+    
+
     // Extract cell reference and value/expression
     if (sscanf(input, "%31[^=]=%127s", cell, expr) != 2) {
-        return 0; // Invalid format
+        return (handle_display(input));
     }
+    
     if(expr[strlen(expr)-1] == '\n') {
         expr[strlen(expr)-1] = '\0';
     }
@@ -196,39 +173,4 @@ int parse_input(const char *input, ParsedInput *parsed) {
         return 0; // Invalid expression
     }
     return 1; // Successfully parsed
-}
-
-
-// Handle user input
-int handle_input(const char *input) {
-
-    // Handle formulas and assignments
-    if (input[0] == 'q') {
-        return EXIT_PROGRAM; // Exit program
-    }
-    ParsedInput parsed;
-    // initialize parsed
-    if (parse_input(input, &parsed)) {
-        // Print the parsed input
-        printf("Target cell: (%d, %d)\n", parsed.target[0], parsed.target[1]);
-        printf("Expression type: %d\n", parsed.expression_type);
-        if(parsed.content.sleep_data.is_sleep) {
-            printf("Function: SLEEP\n");
-            printf("Value: (%d, %d)\n", parsed.content.sleep_data.sleep_value[0], parsed.content.sleep_data.sleep_value[1]);
-        }        
-        else if (parsed.expression_type == 0) {
-            printf("Value: (%d, %d)\n", parsed.content.value_data.value[0], parsed.content.value_data.value[1]);
-        } else if (parsed.expression_type == 1) {
-            printf("Expression: (%d, %d) %c (%d, %d)\n", parsed.content.expression_data.expression_cell_1[0], parsed.content.expression_data.expression_cell_1[1],
-                   parsed.content.expression_data.expression_operator, parsed.content.expression_data.expression_cell_2[0], parsed.content.expression_data.expression_cell_2[1]);
-        } else if (parsed.expression_type == 2) {
-            printf("Function: %d\n", parsed.content.function_data.function_operator);
-            printf("Range: (%d, %d) to (%d, %d)\n", parsed.content.function_data.function_range[0], parsed.content.function_data.function_range[1], parsed.content.function_data.function_range[2], parsed.content.function_data.function_range[3]);
-        }
-        return CONTINUE_PROGRAM;
-    }
-
-    // If no valid input, show an error
-    printf("Error: Unrecognized command\n");
-    return CONTINUE_PROGRAM;
 }

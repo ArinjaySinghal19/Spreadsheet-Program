@@ -28,8 +28,13 @@ char* int2col(int col) {
     
 }
 
-void display_sheet(cell *** sheet, int rows, int cols, int sr, int sc, int er, int ec){
+void display_sheet(cell *** sheet, int rows, int cols, int toggle_display, int sr, int sc){
+    if(toggle_display == 0){
+        return;
+    }
     printf("\t");
+    int ec = min(sc + 10, cols);
+    int er = min(sr + 10, rows);
     for(int j=sc; j<ec; j++){
         printf("%s\t", int2col(j+1));
     }
@@ -46,4 +51,36 @@ void display_sheet(cell *** sheet, int rows, int cols, int sr, int sc, int er, i
         printf("\n");
     }
     return;
+}
+
+//int process_display(status, &toggle_display, &sr, &sc, &er, &ec, rows, cols);
+int process_display(int status, int *toggle_display, int *sr, int *sc, int rows, int  cols) {
+    if(status == 6) {
+        *sr = *sr - 10;
+        if(*sr < 0) {
+            *sr = 0;
+        }
+    }else if(status == 7) {
+        *sc = *sc - 10;
+        if(*sc < 0) {
+            *sc = 0;
+        }
+    }else if(status == 8) {
+        *sr = *sr + 10;
+        if(*sr >= rows) {
+            *sr = rows - 10;
+        }
+    }else if(status == 9) {
+        *sc = *sc + 10;
+        if(*sc >= cols) {
+            *sc = cols - 10;
+        }
+    }else if(status == 10) {
+        *toggle_display = 0;
+    }else if(status == 11) {
+        *toggle_display = 1;
+    }else{
+        return 0;
+    }
+    return 1;
 }
