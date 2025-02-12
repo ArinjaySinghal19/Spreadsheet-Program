@@ -17,16 +17,24 @@ int parse_value(const char *cell, int *row, int *col) {
         return 1;
     }
     //check if string is a number
-    if(!isdigit(cell[0])) {
+    int sign = 1;
+    int iter = 0;
+    if(cell[0] == '-'){
+        sign = -1;
+        iter = 1;
+    }else if(cell[0] == '+'){
+        iter = 1;
+    }
+    if(!isdigit(cell[iter])) {
         return 0;
     }
-    for(int i = 0; cell[i] != '\0'; i++) {
+    for(int i = iter; cell[i] != '\0'; i++) {
         if(!isdigit(cell[i])) {
             return 0;
         }
     }
     *row = -1;
-    *col = atoi(cell);
+    *col = atoi(cell+iter)*sign;
     return 1;
 }
 
@@ -102,6 +110,12 @@ int handle_expression(ParsedInput *parsed, char *expr) {
         return 1;
     }
 
+    // If not a function or expression, then it must be a value
+    parsed->expression_type = 0;
+    if (parse_value(expr, &parsed->content.value_data.value[0], &parsed->content.value_data.value[1])) {
+        return 1; // Invalid value
+    }
+
     // Check if the expression is an arithmetic expression: check for the presence of operators (+, -, *, /)
     if (strchr(expr, '+') || strchr(expr, '-') || strchr(expr, '*') || strchr(expr, '/')) {
         parsed->expression_type = 1;
@@ -118,13 +132,8 @@ int handle_expression(ParsedInput *parsed, char *expr) {
         }
         return 1;
     }
-
-    // If not a function or expression, then it must be a value
-    parsed->expression_type = 0;
-    if (!parse_value(expr, &parsed->content.value_data.value[0], &parsed->content.value_data.value[1])) {
-        return 0; // Invalid value
-    }
-    return 1;
+    
+    return 0;
 }
 
 int handle_display(const char *input) {
