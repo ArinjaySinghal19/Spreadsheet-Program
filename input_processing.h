@@ -8,7 +8,7 @@
 
 void process_input(ParsedInput * parsed, cell *** sheet) {
 
-    if(parsed->content.sleep_data.is_sleep) {
+    if(parsed->expression_type == 3) {
         int val = (parsed->content.sleep_data.sleep_value[0]!=-1 ? (*sheet)[parsed->content.sleep_data.sleep_value[0]][parsed->content.sleep_data.sleep_value[1]].value : parsed->content.sleep_data.sleep_value[1]);
         if(val > 0) {
             sleep(val);

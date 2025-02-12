@@ -90,12 +90,7 @@ void update_dependencies(cell **sheet, int row, int col){
         return;
     }
     if(parsed.expression_type == 2){
-        if(parsed.content.sleep_data.is_sleep){
-            int row1 = parsed.content.sleep_data.sleep_value[0];
-            int col1 = parsed.content.sleep_data.sleep_value[1];
-            if(row1 != -1) add_dependency(sheet, row1, col1, row, col);
-            return;
-        }
+        
         int st_row = parsed.content.function_data.function_range[0];
         int st_col = parsed.content.function_data.function_range[1];
         int end_row = parsed.content.function_data.function_range[2];
@@ -105,6 +100,12 @@ void update_dependencies(cell **sheet, int row, int col){
                 add_dependency(sheet, i, j, row, col);
             }
         }
+        return;
+    }
+    if(parsed.expression_type == 3){
+        int row1 = parsed.content.sleep_data.sleep_value[0];
+        int col1 = parsed.content.sleep_data.sleep_value[1];
+        if(row1 != -1) add_dependency(sheet, row1, col1, row, col);
         return;
     }
 }

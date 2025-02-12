@@ -6,11 +6,7 @@
 #include <time.h>
 #include "graph_checker.h"
 
-#define TURN_ON_DISPLAY 11
-#define TURN_OFF_DISPLAY 10
-
 ParsedInput parsed;
-
 
 int main(){
 
@@ -38,6 +34,7 @@ int main(){
         if(strcmp(input, "q\n")==0 || strcmp(input, "Q\n")==0) {
             break;
         }
+        
         int status = parse_input(input, &parsed);
 
         if(status>=6 && status<=11){
@@ -93,7 +90,7 @@ int main(){
             continue;
         }
 
-        display_sheet(&sheet, rows, toggle_display, cols, sr, sc);
+        display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
 
         end = clock();
 

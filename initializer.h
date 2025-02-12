@@ -10,7 +10,7 @@ typedef struct Node{
 
 typedef struct {
     int target[2]; // Target cell (row, col)
-    int expression_type; // 0 for value, 1 for expression, 2 for function
+    unsigned int expression_type : 2; // 0 for value, 1 for expression, 2 for function, 3 for sleep
     union {
         struct {
             int value[2]; // Value (if expression_type=0)
@@ -28,8 +28,7 @@ typedef struct {
         } function_data;
 
         struct {
-            int is_sleep; // 1 if SLEEP function, 0 otherwise
-            int sleep_value[2]; // Sleep value (if is_sleep=1)
+            int sleep_value[2]; // Sleep value (if expression_type=3)
         } sleep_data;
     } content;
 } ParsedInput;
