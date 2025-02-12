@@ -150,7 +150,7 @@ int handle_display(const char *input) {
 
 
 // Parse the input into a ParsedInput structure
-int parse_input(char *input, ParsedInput *parsed) {
+int parse_input(const char *input, ParsedInput *parsed) {
     char cell[32], expr[128];
     
 
