@@ -29,7 +29,7 @@ int main(){
     display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
     double end = clock();
     double time = (end - start) / CLOCKS_PER_SEC;
-    printf("[%.2fms] (ok) > ", time);
+    printf("[%.2f] (ok) > ", time);
     char input[256];
     while(1){
         for(int i=0; i<256; i++) input[i]='\0';
@@ -63,9 +63,9 @@ int main(){
             end = clock();
             time = (end - start) / CLOCKS_PER_SEC;
             if(status==0){
-                printf("[%.2fms] (Invalid Input) > ", time);
+                printf("[%.2f] (Invalid Input) > ", time);
             }else{
-                printf("[%.2fms] (ok) > ", time);
+                printf("[%.2f] (ok) > ", time);
             }
             continue;
         }
@@ -87,7 +87,7 @@ int main(){
             display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
             end = clock();
             time = (end - start) / CLOCKS_PER_SEC;
-            printf("[%.2fms] (Cycle Detected) > ", time);
+            printf("[%.2f] (Cycle Detected) > ", time);
             continue;
         }
 
@@ -97,7 +97,7 @@ int main(){
 
         time = (end - start) / CLOCKS_PER_SEC;
 
-        printf("[%.2fms] (ok) > ", time);
+        printf("[%.2f] (ok) > ", time);
 
     }
 
