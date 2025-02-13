@@ -112,7 +112,7 @@ void process_input(ParsedInput * parsed, cell *** sheet) {
                     }
                 }
             }
-            double mean = (double)sum / count;
+            int mean = sum / count;
             double stdev = 0;
             for(int i = start_row; i <= end_row; i++){
                 for(int j = start_col; j <= end_col; j++){
@@ -120,7 +120,7 @@ void process_input(ParsedInput * parsed, cell *** sheet) {
                 }
             }
             stdev = stdev / count;
-            stdev = sqrt(stdev);
+            stdev = round(sqrt(stdev));
             (*sheet)[parsed->target[0]][parsed->target[1]].value = (int) stdev;
         }else{
             return;
