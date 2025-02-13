@@ -148,6 +148,15 @@ void free_top_order(Node *top_order){
     }
 }
 
+void print_top_order(Node *top_order){
+    Node *temp = top_order;
+    while(temp != NULL){
+        printf("(%d, %d) ", temp->row, temp->col);
+        temp = temp->next;
+    }
+    printf("\n");
+}
+
 Node* topological_order(cell **sheet, int init_row, int init_col){
     Node *top_order = NULL;
     top_order = (Node *)malloc(sizeof(Node));
@@ -176,6 +185,7 @@ Node* topological_order(cell **sheet, int init_row, int init_col){
         }
         temp = temp->next;
     }
+    // print_top_order(top_order);
     if(count == dirty_cells){
         dirty_cells = 0;
         return top_order;
@@ -185,16 +195,6 @@ Node* topological_order(cell **sheet, int init_row, int init_col){
         cycle = true;
         return NULL;
     }
-}
-
-
-void print_top_order(Node *top_order){
-    Node *temp = top_order;
-    while(temp != NULL){
-        printf("(%d, %d) ", temp->row, temp->col);
-        temp = temp->next;
-    }
-    printf("\n");
 }
 
 

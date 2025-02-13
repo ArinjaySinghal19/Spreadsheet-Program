@@ -60,6 +60,9 @@ int evaluate_range(ParsedInput *parsed, const char *input, int sheet_rows, int s
     if (!parse_cell(end_cell, &parsed->content.function_data.function_range[2], &parsed->content.function_data.function_range[3], sheet_rows, sheet_cols)) {
         return 0; // Invalid end cell
     }
+    if((parsed->content.function_data.function_range[0] > parsed->content.function_data.function_range[2]) || (parsed->content.function_data.function_range[1] > parsed->content.function_data.function_range[3])) {
+        return 0; // Invalid range
+    }
     return 1;
 }
 
