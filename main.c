@@ -76,7 +76,6 @@ int main(){
         sheet[op_row][op_col].parsed = parsed;
 
         int success = change(sheet, op_row, op_col);
-
         if(!success){
             sheet[op_row][op_col].parsed = previous_parsed;
             update_dependencies(sheet, op_row, op_col);

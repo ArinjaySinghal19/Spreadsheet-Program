@@ -71,31 +71,31 @@ int handle_expression(ParsedInput *parsed, char *expr, int sheet_rows, int sheet
     if (strncmp(expr, "MIN", 3) == 0) {
         parsed->expression_type = 2;
         parsed->content.function_data.function_operator = 0;
-        evaluate_range(parsed, expr+3, sheet_rows, sheet_cols);
+        if(!evaluate_range(parsed, expr+3, sheet_rows, sheet_cols)) return 0;
         return 1;
     }
     if (strncmp(expr, "MAX", 3) == 0) {
         parsed->expression_type = 2;
         parsed->content.function_data.function_operator = 1;
-        evaluate_range(parsed, expr+3, sheet_rows, sheet_cols);
+        if(!evaluate_range(parsed, expr+3, sheet_rows, sheet_cols)) return 0;
         return 1;
     }
     if (strncmp(expr, "AVG", 3) == 0) {
         parsed->expression_type = 2;
         parsed->content.function_data.function_operator = 2;
-        evaluate_range(parsed, expr+3, sheet_rows, sheet_cols);
+        if(!evaluate_range(parsed, expr+3, sheet_rows, sheet_cols)) return 0;
         return 1;
     }
     if (strncmp(expr, "SUM", 3) == 0) {
         parsed->expression_type = 2;
         parsed->content.function_data.function_operator = 3;
-        evaluate_range(parsed, expr+3, sheet_rows, sheet_cols);
+        if(!evaluate_range(parsed, expr+3, sheet_rows, sheet_cols)) return 0;
         return 1;
     }
     if (strncmp(expr, "STDEV", 5) == 0) {
         parsed->expression_type = 2;
         parsed->content.function_data.function_operator = 4;
-        evaluate_range(parsed, expr+5, sheet_rows, sheet_cols);
+        if(!evaluate_range(parsed, expr+5, sheet_rows, sheet_cols)) return 0;
         return 1;
     }
     if (strncmp(expr, "SLEEP", 5) == 0) {
@@ -179,6 +179,7 @@ int parse_input(const char *input, ParsedInput *parsed, int sheet_rows, int shee
     if(!handle_expression(parsed, expr, sheet_rows, sheet_cols)) {
         return 0; // Invalid expression
     }
+
     return 1; // Successfully parsed
 }
 
