@@ -4,9 +4,10 @@
 #include<stdint.h>
 #include "initializer.h"
 
+char colStr[4];
 
-char* int2col(int col) {
-    char* ans = (char*)malloc(4 * sizeof(char));
+void int2col(int col) {
+    char ans[4];
     int i = 0;
     while (col > 0) {
         int rem = col % 26;
@@ -18,13 +19,11 @@ char* int2col(int col) {
             col = col / 26;
         }
     }
-    char* colStr = (char*)malloc(4 * sizeof(char));
     for(int j = 0; j < i; j++) {
         colStr[j] = ans[i - j - 1];
     }
     colStr[i] = '\0';
-    free(ans);
-    return colStr;
+    return;
     
 }
 
@@ -36,7 +35,8 @@ void display_sheet(cell *** sheet, int rows, int cols, int toggle_display, int s
     int ec = min(sc + 10, cols);
     int er = min(sr + 10, rows);
     for(int j=sc; j<ec; j++){
-        printf("%s\t", int2col(j+1));
+        int2col(j+1);
+        printf("%s\t", colStr);
     }
     printf("\n");
     for(int i = sr; i < er; i++){

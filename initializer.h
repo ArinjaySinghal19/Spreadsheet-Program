@@ -117,10 +117,20 @@ void free_dependencies(Node *dependencies){
     }
 }
 
+void free_depends_on(Node *depends_on){
+    Node *temp = depends_on;
+    while(temp != NULL){
+        Node *next = temp->next;
+        free(temp);
+        temp = next;
+    }
+}
+
 void free_sheet(cell **sheet, int row, int col){
     for(int i=0; i<row; i++){
         for(int j=0; j<col; j++){
             free_dependencies(sheet[i][j].dependencies);
+            free_depends_on(sheet[i][j].depends_on);
         }
         free(sheet[i]);
     }
