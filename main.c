@@ -35,7 +35,7 @@ int main(){
             break;
         }
         
-        int status = parse_input(input, &parsed);
+        int status = parse_input(input, &parsed, rows, cols);
 
         if(status>=6 && status<=11){
             if(!process_display(status, &toggle_display, &sr, &sc, rows, cols)){
@@ -45,12 +45,10 @@ int main(){
             }
         }
         if(status == 12){
-            printf("%s", input);
             if(input[strlen(input)-1] == '\n'){
                 input[strlen(input)-1] = '\0';
             }
-            if(!parse_cell(input + 10, &sr, &sc)){
-                printf("%s", input);
+            if(!parse_cell(input + 10, &sr, &sc, rows, cols)){
                 status=0;
             }else{
             status = 2;

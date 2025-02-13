@@ -12,8 +12,8 @@
 
 // Structure to hold parsed input
 
-int parse_value(const char *cell, int *row, int *col) {
-    if (parse_cell(cell, row, col)) {
+int parse_value(const char *cell, int *row, int *col, int sheet_rows, int sheet_cols) {
+    if (parse_cell(cell, row, col, sheet_rows, sheet_cols)) {
         return 1;
     }
     //check if string is a number
@@ -38,7 +38,7 @@ int parse_value(const char *cell, int *row, int *col) {
     return 1;
 }
 
-int evaluate_range(ParsedInput *parsed, const char *input) {
+int evaluate_range(ParsedInput *parsed, const char *input, int sheet_rows, int sheet_cols) {
     // Parse the range (e.g., A1:A10)
     int i = 0;
     int j = 0;
@@ -54,16 +54,16 @@ int evaluate_range(ParsedInput *parsed, const char *input) {
     }
     if(start_cell[0]!='(') return 0; // Invalid range format
 
-    if (!parse_cell(&start_cell[1], &parsed->content.function_data.function_range[0], &parsed->content.function_data.function_range[1])) {
+    if (!parse_cell(&start_cell[1], &parsed->content.function_data.function_range[0], &parsed->content.function_data.function_range[1], sheet_rows, sheet_cols)) {
         return 0; // Invalid start cell
     }
-    if (!parse_cell(end_cell, &parsed->content.function_data.function_range[2], &parsed->content.function_data.function_range[3])) {
+    if (!parse_cell(end_cell, &parsed->content.function_data.function_range[2], &parsed->content.function_data.function_range[3], sheet_rows, sheet_cols)) {
         return 0; // Invalid end cell
     }
     return 1;
 }
 
-int handle_expression(ParsedInput *parsed, char *expr) {
+int handle_expression(ParsedInput *parsed, char *expr, int sheet_rows, int sheet_cols) {
     // Expressions can be of broadly 3 types: values, arithmetic expressions, functions.
     // Functions can be MIN(Range), MAX(Range), AVG(Range), SUM(Range), STDEV(Range), SLEEP(Value).
 
@@ -71,31 +71,31 @@ int handle_expression(ParsedInput *parsed, char *expr) {
     if (strncmp(expr, "MIN", 3) == 0) {
         parsed->expression_type = 2;
         parsed->content.function_data.function_operator = 0;
-        evaluate_range(parsed, expr+3);
+        evaluate_range(parsed, expr+3, sheet_rows, sheet_cols);
         return 1;
     }
     if (strncmp(expr, "MAX", 3) == 0) {
         parsed->expression_type = 2;
         parsed->content.function_data.function_operator = 1;
-        evaluate_range(parsed, expr+3);
+        evaluate_range(parsed, expr+3, sheet_rows, sheet_cols);
         return 1;
     }
     if (strncmp(expr, "AVG", 3) == 0) {
         parsed->expression_type = 2;
         parsed->content.function_data.function_operator = 2;
-        evaluate_range(parsed, expr+3);
+        evaluate_range(parsed, expr+3, sheet_rows, sheet_cols);
         return 1;
     }
     if (strncmp(expr, "SUM", 3) == 0) {
         parsed->expression_type = 2;
         parsed->content.function_data.function_operator = 3;
-        evaluate_range(parsed, expr+3);
+        evaluate_range(parsed, expr+3, sheet_rows, sheet_cols);
         return 1;
     }
     if (strncmp(expr, "STDEV", 5) == 0) {
         parsed->expression_type = 2;
         parsed->content.function_data.function_operator = 4;
-        evaluate_range(parsed, expr+5);
+        evaluate_range(parsed, expr+5, sheet_rows, sheet_cols);
         return 1;
     }
     if (strncmp(expr, "SLEEP", 5) == 0) {
@@ -104,7 +104,7 @@ int handle_expression(ParsedInput *parsed, char *expr) {
             return 0; // Invalid SLEEP function format
         }
         expr[strlen(expr)-1] = '\0';
-        if(!parse_value(expr+6, &parsed->content.sleep_data.sleep_value[0], &parsed->content.sleep_data.sleep_value[1])) {
+        if(!parse_value(expr+6, &parsed->content.sleep_data.sleep_value[0], &parsed->content.sleep_data.sleep_value[1], sheet_rows, sheet_cols)) {
             return 0; // Invalid value
         }
         return 1;
@@ -112,7 +112,7 @@ int handle_expression(ParsedInput *parsed, char *expr) {
 
     // If not a function or expression, then it must be a value
     parsed->expression_type = 0;
-    if (parse_value(expr, &parsed->content.value_data.value[0], &parsed->content.value_data.value[1])) {
+    if (parse_value(expr, &parsed->content.value_data.value[0], &parsed->content.value_data.value[1], sheet_rows, sheet_cols)) {
         return 1; // Invalid value
     }
 
@@ -124,10 +124,10 @@ int handle_expression(ParsedInput *parsed, char *expr) {
         parsed->content.expression_data.expression_operator = expr[i];
         //divide expression into two values
         expr[i] = '\0';
-        if (!parse_value(expr, &parsed->content.expression_data.expression_cell_1[0], &parsed->content.expression_data.expression_cell_1[1])) {
+        if (!parse_value(expr, &parsed->content.expression_data.expression_cell_1[0], &parsed->content.expression_data.expression_cell_1[1], sheet_rows, sheet_cols)) {
             return 0; // Invalid first cell
         }
-        if (!parse_value(expr+i+1, &parsed->content.expression_data.expression_cell_2[0], &parsed->content.expression_data.expression_cell_2[1])) {
+        if (!parse_value(expr+i+1, &parsed->content.expression_data.expression_cell_2[0], &parsed->content.expression_data.expression_cell_2[1], sheet_rows, sheet_cols)) {
             return 0; // Invalid second cell
         }
         return 1;
@@ -159,7 +159,7 @@ int handle_display(const char *input) {
 
 
 // Parse the input into a ParsedInput structure
-int parse_input(const char *input, ParsedInput *parsed) {
+int parse_input(const char *input, ParsedInput *parsed, int sheet_rows, int sheet_cols) {
     char cell[32], expr[128];
     
 
@@ -172,18 +172,18 @@ int parse_input(const char *input, ParsedInput *parsed) {
         expr[strlen(expr)-1] = '\0';
     }
     // Parse the cell reference
-    if (!parse_cell(cell, &parsed->target[0], &parsed->target[1])) {
+    if (!parse_cell(cell, &parsed->target[0], &parsed->target[1], sheet_rows, sheet_cols)) {
         return 0; // Invalid cell reference
     }
 
-    if(!handle_expression(parsed, expr)) {
+    if(!handle_expression(parsed, expr, sheet_rows, sheet_cols)) {
         return 0; // Invalid expression
     }
     return 1; // Successfully parsed
 }
 
 // Handle user input
-int handle_input(const char *input) {
+int handle_input(const char *input, int sheet_rows, int sheet_cols) {
 
     // Handle formulas and assignments
     if (input[0] == 'q') {
@@ -191,7 +191,7 @@ int handle_input(const char *input) {
     }
     ParsedInput parsed;
     // initialize parsed
-    if (parse_input(input, &parsed)) {
+    if (parse_input(input, &parsed, sheet_rows, sheet_cols)) {
         // Print the parsed input
         printf("Target cell: (%d, %d)\n", parsed.target[0], parsed.target[1]);
         printf("Expression type: %d\n", parsed.expression_type);

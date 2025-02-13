@@ -135,7 +135,9 @@ int is_valid_cell(const char *cell) {
 }
 
 // Parse a cell reference (e.g., "AA10" -> row=9, col=26)
-int parse_cell(const char *cell, int *row, int *col) {
+int parse_cell(const char *cell, int *row, int *col, int sheet_rows, int sheet_cols) {
+    int original_row = *row;
+    int original_col = *col;
     if (!is_valid_cell(cell)) return 0;
 
     int i = 0;
@@ -162,5 +164,10 @@ int parse_cell(const char *cell, int *row, int *col) {
         }
     }
     *row = atoi(row_part)-1; // Convert to 0-based indexing
+    if(*row < 0 || *row >= sheet_rows || *col < 0 || *col >= sheet_cols){
+        *row = original_row;
+        *col = original_col;
+        return 0; // Invalid row index
+    }
     return 1;
 }
