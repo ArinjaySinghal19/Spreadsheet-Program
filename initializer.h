@@ -47,6 +47,23 @@ typedef struct cell{
 } cell;
 
 
+void initialize_parsed_input(ParsedInput* input) {
+    if (input == NULL) return;
+    
+    // Initialize target coordinates
+    input->target[0] = 0;
+    input->target[1] = 0;
+    
+    // Initialize expression type
+    input->expression_type = 0;
+    
+    // Initialize all union members to 0
+    // We can use memset since we want all bytes to be 0
+    memset(&input->content, 0, sizeof(input->content));
+}
+
+
+
 
 bool valid_input(int rows, int cols){
     if(rows < 1 || rows > 999 || cols < 1 || cols > 18278){
@@ -85,6 +102,7 @@ void initialize_sheet(cell ***sheet, int rows, int cols){
             (*sheet)[i][j].depends_on = NULL;
             (*sheet)[i][j].is_dirty = false;
             (*sheet)[i][j].dirty_parents = 0;
+            initialize_parsed_input(&(*sheet)[i][j].parsed);
         }
     }
 }

@@ -22,6 +22,10 @@ int main(){
     int sr = 0, sc = 0, toggle_display = 1;
     cell **sheet;
     initialize_sheet(&sheet, rows, cols);
+    if(sheet == NULL){
+        printf("Memory allocation failed\n");
+        return 0;
+    }
     display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
     double end = clock();
     double time = (end - start) / CLOCKS_PER_SEC;
