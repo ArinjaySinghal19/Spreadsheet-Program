@@ -53,21 +53,20 @@ void display_sheet(cell *** sheet, int rows, int cols, int toggle_display, int s
     return;
 }
 
-//int process_display(status, &toggle_display, &sr, &sc, &er, &ec, rows, cols);
 int process_display(int status, int *toggle_display, int *sr, int *sc, int rows, int  cols) {
     if(status == 6) *sr = max(0, *sr - 10);
     else if(status == 7) *sc = max(0, *sc - 10);
     else if(status == 8) {
         *sr = *sr + 10;
-        if(*sr >= rows) {
-            *sr = max(rows - 10, 0);
-        }
-    }else if(status == 9) {
+        int er = min(*sr + 10, rows);
+        *sr = max(er - 10, 0);
+    }
+    else if(status == 9) {
         *sc = *sc + 10;
-        if(*sc >= cols) {
-            *sc = max(cols - 10, 0);
-        }
-    }else if(status == 10) {
+        int ec = min(*sc + 10, cols);
+        *sc = max(ec - 10, 0);
+    }
+    else if(status == 10) {
         *toggle_display = 0;
     }else if(status == 11) {
         *toggle_display = 1;
