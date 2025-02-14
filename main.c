@@ -73,10 +73,8 @@ int main(){
         int op_col = parsed.target[1];
         ParsedInput previous_parsed;
         int previous_value;
-        if(sheet[op_row][op_col].dependencies != NULL){
-            previous_parsed = sheet[op_row][op_col].parsed;
-            previous_value = sheet[op_row][op_col].value;
-        }
+        previous_parsed = sheet[op_row][op_col].parsed;
+        previous_value = sheet[op_row][op_col].value;
         sheet[op_row][op_col].parsed = parsed;
 
         int success = change(sheet, op_row, op_col);
