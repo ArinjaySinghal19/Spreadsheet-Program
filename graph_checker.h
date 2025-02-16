@@ -230,6 +230,8 @@ void recalculate(cell **sheet, Node *top_order){
 
 int change(cell **sheet, int row, int col){
     cycle = false;
+    Node *old_depends_on = sheet[row][col].depends_on;
+    int old_value = sheet[row][col].value;
     update_dependencies(sheet, row, col);
     Node *temp = (Node *)malloc(sizeof(Node));
     temp->row = row;
@@ -242,6 +244,9 @@ int change(cell **sheet, int row, int col){
     if(dirty_head!=NULL) free_dirty_array(sheet);
     if(cycle){
         free_top_order(top_order);
+        free_parents(sheet, row, col);
+        sheet[row][col].depends_on = old_depends_on;
+        sheet[row][col].value = old_value;
         return 0;
     }
     recalculate(sheet, top_order);

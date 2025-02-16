@@ -29,7 +29,7 @@ int main() {
     display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
     double end = get_time();
     double time_taken = end - start;
-    printf("[%.2f] (ok) > ", time_taken);
+    printf("[%.1f] (ok) > ", time_taken);
     char input[256];
     while(1){
         for(int i=0; i<256; i++) input[i]='\0';
@@ -63,9 +63,9 @@ int main() {
             end = get_time();
             time_taken = end - start;
             if(status==0){
-                printf("[%.2f] (Invalid Input) > ", time_taken);
+                printf("[%.1f] (Invalid Input) > ", time_taken);
             }else{
-                printf("[%.2f] (ok) > ", time_taken);
+                printf("[%.1f] (ok) > ", time_taken);
             }
             continue;
         }
@@ -79,13 +79,10 @@ int main() {
 
         int success = change(sheet, op_row, op_col);
         if(!success){
-            sheet[op_row][op_col].parsed = previous_parsed;
-            update_dependencies(sheet, op_row, op_col);
-            sheet[op_row][op_col].value = previous_value;
             display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
             end = get_time();
             time_taken = end - start;
-            printf("[%.2f] (Cycle Detected) > ", time_taken);
+            printf("[%.1f] (Cycle Detected) > ", time_taken);
             continue;
         }
 
@@ -94,7 +91,7 @@ int main() {
         end = get_time();
         time_taken = end - start;
 
-        printf("[%.2f] (ok) > ", time_taken);
+        printf("[%.1f] (ok) > ", time_taken);
     }
 
     free_sheet(sheet, rows, cols);
