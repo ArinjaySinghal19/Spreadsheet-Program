@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <string.h>
+#include <time.h>
+#include <sys/time.h>
 
 typedef struct Node{
     int row;
@@ -198,4 +200,11 @@ int parse_cell(const char *cell, int *row, int *col, int sheet_rows, int sheet_c
         return 0; // Invalid row index
     }
     return 1;
+}
+
+
+double get_time() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec + tv.tv_usec / 1000000.0;
 }
