@@ -48,12 +48,12 @@ void process_input(ParsedInput * parsed, cell *** sheet) {
             int minCellValue = (*sheet)[start_row][start_col].value;
             for(int i = start_row; i <= end_row; i++){
                 for(int j = start_col; j <= end_col; j++){
+                    if((*sheet)[i][j].value == INT32_MIN){
+                        (*sheet)[parsed->target[0]][parsed->target[1]].value = INT32_MIN;
+                        return;
+                    }
                     if((*sheet)[i][j].value < minCellValue){
                         minCellValue = (*sheet)[i][j].value;
-                        if(minCellValue == INT32_MIN){
-                            (*sheet)[parsed->target[0]][parsed->target[1]].value = INT32_MIN;
-                            return;
-                        }
                     }
                 }
             }
@@ -62,12 +62,12 @@ void process_input(ParsedInput * parsed, cell *** sheet) {
             int max = (*sheet)[start_row][start_col].value;
             for(int i = start_row; i <= end_row; i++){
                 for(int j = start_col; j <= end_col; j++){
+                    if((*sheet)[i][j].value == INT32_MIN){
+                        (*sheet)[parsed->target[0]][parsed->target[1]].value = INT32_MIN;
+                        return;
+                    }
                     if((*sheet)[i][j].value > max){
                         max = (*sheet)[i][j].value;
-                        if((*sheet)[i][j].value == INT32_MIN){
-                            (*sheet)[parsed->target[0]][parsed->target[1]].value = INT32_MIN;
-                            return;
-                        }
                     }
                 }
             }
@@ -92,7 +92,7 @@ void process_input(ParsedInput * parsed, cell *** sheet) {
             for(int i = start_row; i <= end_row; i++){
                 for(int j = start_col; j <= end_col; j++){
                     sum += (*sheet)[i][j].value;
-                    if(sum == INT32_MIN){
+                    if((*sheet)[i][j].value == INT32_MIN){
                         (*sheet)[parsed->target[0]][parsed->target[1]].value = INT32_MIN;
                         return;
                     }
