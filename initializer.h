@@ -6,45 +6,47 @@
 #include <time.h>
 #include <sys/time.h>
 
+typedef int16_t short_int;
+
 typedef struct Node{
-    int row;
-    int col;
+    short_int row;
+    short_int col;
     struct Node *next;
 } Node;
 
 typedef struct {
-    int target[2]; // Target cell (row, col)
+    short_int target[2]; // Target cell (row, col)
     unsigned int expression_type : 2; // 0 for value, 1 for expression, 2 for function, 3 for sleep
     union {
         struct {
-            int value[2]; // Value (if expression_type=0)
+            short_int value[2]; // Value (if expression_type=0)
         } value_data;
 
         struct {
-            int expression_cell_1[2]; // First cell in expression
-            int expression_cell_2[2]; // Second cell in expression
+            short_int expression_cell_1[2]; // First cell in expression
+            short_int expression_cell_2[2]; // Second cell in expression
             char expression_operator; // Operator in expression ( +, -, *, /)
         } expression_data;
 
         struct {
             char function_operator; 
-            int function_range[4]; // Function range (start row, start col, end row, end col)
+            short_int function_range[4]; // Function range (start row, start col, end row, end col)
         } function_data;
 
         struct {
-            int sleep_value[2]; // Sleep value (if expression_type=3)
+            short_int sleep_value[2]; // Sleep value (if expression_type=3)
         } sleep_data;
     } content;
 } ParsedInput;
 
 typedef struct cell{
-    int value;
-    int row;
-    int col;
+    short_int value;
+    short_int row;
+    short_int col;
     Node *dependencies;
     Node *depends_on;
     bool is_dirty;
-    int dirty_parents;
+    short_int dirty_parents;
     ParsedInput parsed;
 } cell;
 
@@ -67,14 +69,14 @@ void initialize_parsed_input(ParsedInput* input) {
 
 
 
-bool valid_input(int rows, int cols){
+bool valid_input(short_int rows, short_int cols){
     if(rows < 1 || rows > 999 || cols < 1 || cols > 18278){
         return false;
     }
     return true;
 }
 
-void initialize_sheet(cell ***sheet, int rows, int cols){
+void initialize_sheet(cell ***sheet, short_int rows, short_int cols){
     // Allocate array of pointers to rows
     *sheet = (cell **)malloc(rows * sizeof(cell *));
     if(*sheet == NULL){
@@ -82,11 +84,11 @@ void initialize_sheet(cell ***sheet, int rows, int cols){
     }
 
     // Allocate array of cells for each row
-    for(int i = 0; i < rows; i++){
+    for(short_int i = 0; i < rows; i++){
         (*sheet)[i] = (cell *)malloc(cols * sizeof(cell));
         if((*sheet)[i] == NULL){
             // Free previously allocated memory if allocation fails
-            for(int j = 0; j < i; j++){
+            for(short_int j = 0; j < i; j++){
                 free((*sheet)[j]);
             }
             free(*sheet);
@@ -95,8 +97,8 @@ void initialize_sheet(cell ***sheet, int rows, int cols){
     }
 
     // Initialize each cell
-    for(int i = 0; i < rows; i++){
-        for(int j = 0; j < cols; j++){
+    for(short_int i = 0; i < rows; i++){
+        for(short_int j = 0; j < cols; j++){
             (*sheet)[i][j].value = 0;
             (*sheet)[i][j].row = i;
             (*sheet)[i][j].col = j;
@@ -128,9 +130,9 @@ void free_depends_on(Node *depends_on){
     }
 }
 
-void free_sheet(cell **sheet, int row, int col){
-    for(int i=0; i<row; i++){
-        for(int j=0; j<col; j++){
+void free_sheet(cell **sheet, short_int row, short_int col){
+    for(short_int i=0; i<row; i++){
+        for(short_int j=0; j<col; j++){
             free_dependencies(sheet[i][j].dependencies);
             free_depends_on(sheet[i][j].depends_on);
         }
@@ -140,17 +142,17 @@ void free_sheet(cell **sheet, int row, int col){
 }
 
 
-int min(int a, int b){
+short_int min(short_int a, short_int b){
     return a < b ? a : b;
 }
 
-int max(int a, int b){
+short_int max(short_int a, short_int b){
     return a > b ? a : b;
 }
 
 // Check if a string is a valid cell reference (e.g., "A1", "AA10")
-int is_valid_cell(const char *cell) {
-    int i = 0;
+short_int is_valid_cell(const char *cell) {
+    short_int i = 0;
 
     // Ensure the column part contains letters
     while (isalpha(cell[i])) i++;
@@ -165,12 +167,12 @@ int is_valid_cell(const char *cell) {
 }
 
 // Parse a cell reference (e.g., "AA10" -> row=9, col=26)
-int parse_cell(const char *cell, int *row, int *col, int sheet_rows, int sheet_cols) {
-    int original_row = *row;
-    int original_col = *col;
+short_int parse_cell(const char *cell, short_int *row, short_int *col, short_int sheet_rows, short_int sheet_cols) {
+    short_int original_row = *row;
+    short_int original_col = *col;
     if (!is_valid_cell(cell)) return 0;
 
-    int i = 0;
+    short_int i = 0;
     while (isalpha(cell[i])) i++;
 
     if(i==strlen(cell)) return 0; // Invalid cell reference
@@ -182,13 +184,13 @@ int parse_cell(const char *cell, int *row, int *col, int sheet_rows, int sheet_c
 
     // Convert column part to index (e.g., "A"=0, "AA"=26)
     *col = 0;
-    for (int j = 0; col_part[j] != '\0'; j++) {
+    for (short_int j = 0; col_part[j] != '\0'; j++) {
         *col = *col * 26 + (toupper(col_part[j]) - 'A' + 1);
     }
     if(*col == 0) return 0; // Invalid column part
     *col -= 1;
     if(row_part[0] == '\0') return 0; // Invalid row part
-    for(int i = 1; row_part[i] != '\0'; i++) {
+    for(short_int i = 1; row_part[i] != '\0'; i++) {
         if(!isdigit(row_part[i])) {
             return 0;
         }

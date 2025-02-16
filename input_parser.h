@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "display_sheet.h"
 
+
 // Define constants for program flow
 #define EXIT_PROGRAM 1
 #define CONTINUE_PROGRAM 0
@@ -12,13 +13,13 @@
 
 // Structure to hold parsed input
 
-int parse_value(const char *cell, int *row, int *col, int sheet_rows, int sheet_cols) {
+short_int parse_value(const char *cell, short_int *row, short_int *col, short_int sheet_rows, short_int sheet_cols) {
     if (parse_cell(cell, row, col, sheet_rows, sheet_cols)) {
         return 1;
     }
     //check if string is a number
-    int sign = 1;
-    int iter = 0;
+    short_int sign = 1;
+    short_int iter = 0;
     if(cell[0] == '-'){
         sign = -1;
         iter = 1;
@@ -28,7 +29,7 @@ int parse_value(const char *cell, int *row, int *col, int sheet_rows, int sheet_
     if(!isdigit(cell[iter])) {
         return 0;
     }
-    for(int i = iter; cell[i] != '\0'; i++) {
+    for(short_int i = iter; cell[i] != '\0'; i++) {
         if(!isdigit(cell[i])) {
             return 0;
         }
@@ -38,10 +39,10 @@ int parse_value(const char *cell, int *row, int *col, int sheet_rows, int sheet_
     return 1;
 }
 
-int evaluate_range(ParsedInput *parsed, const char *input, int sheet_rows, int sheet_cols) {
+short_int evaluate_range(ParsedInput *parsed, const char *input, short_int sheet_rows, short_int sheet_cols) {
     // Parse the range (e.g., A1:A10)
-    int i = 0;
-    int j = 0;
+    short_int i = 0;
+    short_int j = 0;
     char end_cell[32], start_cell[32];
     if(sscanf(input, "%31[^:]:%31s", start_cell, end_cell) != 2) {
     
@@ -66,7 +67,7 @@ int evaluate_range(ParsedInput *parsed, const char *input, int sheet_rows, int s
     return 1;
 }
 
-int handle_expression(ParsedInput *parsed, char *expr, int sheet_rows, int sheet_cols) {
+short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_rows, short_int sheet_cols) {
     // Expressions can be of broadly 3 types: values, arithmetic expressions, functions.
     // Functions can be MIN(Range), MAX(Range), AVG(Range), SUM(Range), STDEV(Range), SLEEP(Value).
 
@@ -122,7 +123,7 @@ int handle_expression(ParsedInput *parsed, char *expr, int sheet_rows, int sheet
     // Check if the expression is an arithmetic expression: check for the presence of operators (+, -, *, /)
     if (strchr(expr, '+') || strchr(expr, '-') || strchr(expr, '*') || strchr(expr, '/')) {
         parsed->expression_type = 1;
-        int i = 0;
+        short_int i = 0;
         while (expr[i] != '+' && expr[i] != '-' && expr[i] != '*' && expr[i] != '/') i++;
         parsed->content.expression_data.expression_operator = expr[i];
         //divide expression into two values
@@ -139,7 +140,7 @@ int handle_expression(ParsedInput *parsed, char *expr, int sheet_rows, int sheet
     return 0;
 }
 
-int handle_display(const char *input) {
+short_int handle_display(const char *input) {
     if(strcmp(input, "disable_output\n") == 0) {
         return 10;
     }else if(strcmp(input, "enable_output\n") == 0) {
@@ -162,7 +163,7 @@ int handle_display(const char *input) {
 
 
 // Parse the input into a ParsedInput structure
-int parse_input(const char *input, ParsedInput *parsed, int sheet_rows, int sheet_cols) {
+short_int parse_input(const char *input, ParsedInput *parsed, short_int sheet_rows, short_int sheet_cols) {
     char cell[32], expr[128];
     
 
@@ -187,7 +188,7 @@ int parse_input(const char *input, ParsedInput *parsed, int sheet_rows, int shee
 }
 
 // Handle user input
-int handle_input(const char *input, int sheet_rows, int sheet_cols) {
+short_int handle_input(const char *input, short_int sheet_rows, short_int sheet_cols) {
 
     // Handle formulas and assignments
     if (input[0] == 'q') {
@@ -196,7 +197,7 @@ int handle_input(const char *input, int sheet_rows, int sheet_cols) {
     ParsedInput parsed;
     // initialize parsed
     if (parse_input(input, &parsed, sheet_rows, sheet_cols)) {
-        // Print the parsed input
+        // Prshort_int the parsed input
         printf("Target cell: (%d, %d)\n", parsed.target[0], parsed.target[1]);
         printf("Expression type: %d\n", parsed.expression_type);
         if(parsed.expression_type == 3) {

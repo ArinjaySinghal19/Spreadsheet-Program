@@ -10,8 +10,8 @@ ParsedInput parsed;
 
 
 int main() {
-    int rows, cols;
-    scanf("%d %d", &rows, &cols);
+    short_int rows, cols;
+    scanf("%hd %hd", &rows, &cols);
     getchar();
     double start = get_time();
 
@@ -19,7 +19,7 @@ int main() {
         printf("Invalid input\n");
         return 0;
     }
-    int sr = 0, sc = 0, toggle_display = 1;
+    short_int sr = 0, sc = 0, toggle_display = 1;
     cell **sheet;
     initialize_sheet(&sheet, rows, cols);
     if(sheet == NULL){
@@ -32,14 +32,14 @@ int main() {
     printf("[%.1f] (ok) > ", time_taken);
     char input[256];
     while(1){
-        for(int i=0; i<256; i++) input[i]='\0';
+        for(short_int i=0; i<256; i++) input[i]='\0';
         fgets(input, sizeof(input), stdin);
         start = get_time();
         if(strcmp(input, "q\n")==0 || strcmp(input, "Q\n")==0) {
             break;
         }
         
-        int status = parse_input(input, &parsed, rows, cols);
+        short_int status = parse_input(input, &parsed, rows, cols);
 
         if(status>=6 && status<=11){
             if(!process_display(status, &toggle_display, &sr, &sc, rows, cols)){
@@ -69,15 +69,15 @@ int main() {
             }
             continue;
         }
-        int op_row = parsed.target[0];
-        int op_col = parsed.target[1];
+        short_int op_row = parsed.target[0];
+        short_int op_col = parsed.target[1];
         ParsedInput previous_parsed;
-        int previous_value;
+        short_int previous_value;
         previous_parsed = sheet[op_row][op_col].parsed;
         previous_value = sheet[op_row][op_col].value;
         sheet[op_row][op_col].parsed = parsed;
 
-        int success = change(sheet, op_row, op_col);
+        short_int success = change(sheet, op_row, op_col);
         if(!success){
             display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
             end = get_time();
