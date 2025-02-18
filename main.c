@@ -3,23 +3,52 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <time.h>
 #include "graph_checker.h"
 
 ParsedInput parsed;
 
+int string_to_nat(char *s){
+    int cur = 0;
+    int inval = 0;
+    while (*s != '\0'){
+        if (*s>'9' || *s<'0'){
+            inval = 1;
+            break;
+        }
+        cur*=10;
+        cur+=(*s-'0');
+        s++;
+    }
+    if (cur == 0) inval = 1;
+    if (inval == 1) return -1;
+    else return cur;
 
+}
+int main(int argc, char *argv[]){
+    if (argc !=3){
+        printf("Invalid input\n");
+        return 0;
+    }
+    
+    int rows, cols;
+    rows = string_to_nat(argv[1]);
+    cols = string_to_nat(argv[2]);
+    if (rows == -1 || cols == -1){
+        printf("Invalid input\n");
+        return 0;
+        
+    }
 
-int main() {
-    short_int rows, cols;
-    scanf("%hd %hd", &rows, &cols);
-    getchar();
-    double start = get_time();
+   
+    
+    double start = clock();
 
     if(!valid_input(rows, cols)){
         printf("Invalid input\n");
         return 0;
     }
-    short_int sr = 0, sc = 0, toggle_display = 1;
+    int sr = 0, sc = 0, toggle_display = 1;
     cell **sheet;
     initialize_sheet(&sheet, rows, cols);
     if(sheet == NULL){
@@ -27,19 +56,19 @@ int main() {
         return 0;
     }
     display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
-    double end = get_time();
-    double time_taken = end - start;
-    printf("[%.1f] (ok) > ", time_taken);
+    double end = clock();
+    double time = (end - start) / CLOCKS_PER_SEC;
+    printf("[%.2f] (ok) > ", time);
     char input[256];
     while(1){
-        for(short_int i=0; i<256; i++) input[i]='\0';
+        for(int i=0; i<256; i++) input[i]='\0';
         fgets(input, sizeof(input), stdin);
-        start = get_time();
+        start = clock();
         if(strcmp(input, "q\n")==0 || strcmp(input, "Q\n")==0) {
             break;
         }
         
-        short_int status = parse_input(input, &parsed, rows, cols);
+        int status = parse_input(input, &parsed, rows, cols);
 
         if(status>=6 && status<=11){
             if(!process_display(status, &toggle_display, &sr, &sc, rows, cols)){
@@ -55,43 +84,48 @@ int main() {
             if(!parse_cell(input + 10, &sr, &sc, rows, cols)){
                 status=0;
             }else{
-                status = 2;
+            status = 2;
             }
         }
         if(status==0 || status == 2){
             display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
-            end = get_time();
-            time_taken = end - start;
+            end = clock();
+            time = (end - start) / CLOCKS_PER_SEC;
             if(status==0){
-                printf("[%.1f] (Invalid Input) > ", time_taken);
+                printf("[%.2f] (Invalid Input) > ", time);
             }else{
-                printf("[%.1f] (ok) > ", time_taken);
+                printf("[%.2f] (ok) > ", time);
             }
             continue;
         }
-        short_int op_row = parsed.target[0];
-        short_int op_col = parsed.target[1];
+        int op_row = parsed.target[0];
+        int op_col = parsed.target[1];
         ParsedInput previous_parsed;
-        short_int previous_value;
+        int previous_value;
         previous_parsed = sheet[op_row][op_col].parsed;
         previous_value = sheet[op_row][op_col].value;
         sheet[op_row][op_col].parsed = parsed;
 
-        short_int success = change(sheet, op_row, op_col);
+        int success = change(sheet, op_row, op_col);
         if(!success){
+            sheet[op_row][op_col].parsed = previous_parsed;
+            update_dependencies(sheet, op_row, op_col);
+            sheet[op_row][op_col].value = previous_value;
             display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
-            end = get_time();
-            time_taken = end - start;
-            printf("[%.1f] (Cycle Detected) > ", time_taken);
+            end = clock();
+            time = (end - start) / CLOCKS_PER_SEC;
+            printf("[%.2f] (Cycle Detected) > ", time);
             continue;
         }
 
         display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
 
-        end = get_time();
-        time_taken = end - start;
+        end = clock();
 
-        printf("[%.1f] (ok) > ", time_taken);
+        time = (end - start) / CLOCKS_PER_SEC;
+
+        printf("[%.2f] (ok) > ", time);
+
     }
 
     free_sheet(sheet, rows, cols);
