@@ -41,8 +41,6 @@ short_int parse_value(const char *cell, short_int *row, short_int *col, short_in
 
 short_int evaluate_range(ParsedInput *parsed, const char *input, short_int sheet_rows, short_int sheet_cols) {
     // Parse the range (e.g., A1:A10)
-    short_int i = 0;
-    short_int j = 0;
     char end_cell[32], start_cell[32];
     if(sscanf(input, "%31[^:]:%31s", start_cell, end_cell) != 2) {
     
