@@ -44,9 +44,7 @@ typedef struct cell{
     short_int row;
     short_int col;
     Node *dependencies;
-    Node *depends_on;
     bool is_dirty;
-    short_int dirty_parents;
     ParsedInput parsed;
 } cell;
 
@@ -59,7 +57,7 @@ void initialize_parsed_input(ParsedInput* input) {
     input->target[1] = 0;
     
     // Initialize expression type
-    input->expression_type = 0;
+    input->expression_type = -1;
     
     // Initialize all union members to 0
     // We can use memset since we want all bytes to be 0
@@ -103,9 +101,7 @@ void initialize_sheet(cell ***sheet, short_int rows, short_int cols){
             (*sheet)[i][j].row = i;
             (*sheet)[i][j].col = j;
             (*sheet)[i][j].dependencies = NULL;
-            (*sheet)[i][j].depends_on = NULL;
             (*sheet)[i][j].is_dirty = false;
-            (*sheet)[i][j].dirty_parents = 0;
             initialize_parsed_input(&(*sheet)[i][j].parsed);
         }
     }
@@ -115,17 +111,7 @@ void initialize_sheet(cell ***sheet, short_int rows, short_int cols){
 void free_dependencies(Node *dependencies){
     Node *temp = dependencies;
     while(temp != NULL){
-        Node *next = temp->next;
-        free(temp);
-        temp = next;
-    }
-}
-
-void free_depends_on(Node *depends_on){
-    Node *temp = depends_on;
-    while(temp != NULL){
-        Node *next = temp->next;
-        free(temp);
+        Node *next = temp->next;        free(temp);
         temp = next;
     }
 }
@@ -134,7 +120,6 @@ void free_sheet(cell **sheet, short_int row, short_int col){
     for(short_int i=0; i<row; i++){
         for(short_int j=0; j<col; j++){
             free_dependencies(sheet[i][j].dependencies);
-            free_depends_on(sheet[i][j].depends_on);
         }
         free(sheet[i]);
     }
@@ -209,4 +194,22 @@ double get_time() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return tv.tv_sec + tv.tv_usec / 1000000.0;
+}
+
+int string_to_nat(char *s){
+    short_int cur = 0;
+    short_int inval = 0;
+    while (*s != '\0'){
+        if (*s>'9' || *s<'0'){
+            inval = 1;
+            break;
+        }
+        cur*=10;
+        cur+=(*s-'0');
+        s++;
+    }
+    if (cur == 0) inval = 1;
+    if (inval == 1) return -1;
+    else return cur;
+
 }

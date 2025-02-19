@@ -2,3 +2,9 @@
 .DS_Store
 a.out
 main
+sheet.dSYM/Contents/Resources/DWARF/sheet
+sheet.dSYM/Contents/Resources/Relocations/aarch64/sheet.yml
+tempCodeRunnerFile.h
+sheet
+graph_checker
+initializer

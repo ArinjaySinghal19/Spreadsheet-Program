@@ -35,7 +35,6 @@ int main(int argc, char* argv[]) {
         printf("invalid input\n");
         return 0;
     }
-    
     short_int rows, cols;
     rows = string_to_nat(argv[1]);
     cols = string_to_nat(argv[2]);
@@ -51,6 +50,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     short_int sr = 0, sc = 0, toggle_display = 1;
+    short_int sr = 0, sc = 0, toggle_display = 1;
     cell **sheet;
     initialize_sheet(&sheet, rows, cols);
     if(sheet == NULL){
@@ -58,6 +58,9 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
+    double end = get_time();
+    double time_taken = end - start;
+    printf("[%.1f] (ok) > ", time_taken);
     double end = get_time();
     double time_taken = end - start;
     printf("[%.1f] (ok) > ", time_taken);
@@ -70,6 +73,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         
+        short_int status = parse_input(input, &parsed, rows, cols);
         short_int status = parse_input(input, &parsed, rows, cols);
 
         if(status>=6 && status<=11){
@@ -87,28 +91,34 @@ int main(int argc, char* argv[]) {
                 status=0;
             }else{
                 status = 2;
+                status = 2;
             }
         }
         if(status==0 || status == 2){
             display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
             end = get_time();
             time_taken = end - start;
+            end = get_time();
+            time_taken = end - start;
             if(status==0){
                 printf("[%.1f] (Invalid Input) > ", time_taken);
+                printf("[%.1f] (Invalid Input) > ", time_taken);
             }else{
+                printf("[%.1f] (ok) > ", time_taken);
                 printf("[%.1f] (ok) > ", time_taken);
             }
             continue;
         }
         short_int op_row = parsed.target[0];
         short_int op_col = parsed.target[1];
+        short_int op_row = parsed.target[0];
+        short_int op_col = parsed.target[1];
         ParsedInput previous_parsed;
         short_int previous_value;
         previous_parsed = sheet[op_row][op_col].parsed;
-        previous_value = sheet[op_row][op_col].value;
         sheet[op_row][op_col].parsed = parsed;
 
-        short_int success = change(sheet, op_row, op_col);
+        short_int success = change(sheet, op_row, op_col, previous_parsed);
         if(!success){
             display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
             end = get_time();
