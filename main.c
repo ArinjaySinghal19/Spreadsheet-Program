@@ -7,28 +7,6 @@
 
 ParsedInput parsed;
 
-short_int string_to_nat(char *s) {
-    short_int cur = 0;
-    int inval = 0;
-    while (*s != '\0') {
-        if (*s > '9' || *s < '0') {
-            inval = 1;
-            break;
-        }
-        short_int prev = cur;
-        cur *= 10;
-        cur += (*s - '0');
-        // Check for overflow
-        if (cur / 10 != prev) {
-            inval = 1;
-            break;
-        }
-        s++;
-    }
-    if (cur == 0) inval = 1;
-    if (inval == 1) return -1;
-    else return cur;
-}
 
 int main(int argc, char* argv[]) {
     if (argc !=3){
@@ -50,7 +28,6 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     short_int sr = 0, sc = 0, toggle_display = 1;
-    short_int sr = 0, sc = 0, toggle_display = 1;
     cell **sheet;
     initialize_sheet(&sheet, rows, cols);
     if(sheet == NULL){
@@ -58,9 +35,6 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
-    double end = get_time();
-    double time_taken = end - start;
-    printf("[%.1f] (ok) > ", time_taken);
     double end = get_time();
     double time_taken = end - start;
     printf("[%.1f] (ok) > ", time_taken);
@@ -73,7 +47,6 @@ int main(int argc, char* argv[]) {
             break;
         }
         
-        short_int status = parse_input(input, &parsed, rows, cols);
         short_int status = parse_input(input, &parsed, rows, cols);
 
         if(status>=6 && status<=11){
@@ -98,23 +71,16 @@ int main(int argc, char* argv[]) {
             display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
             end = get_time();
             time_taken = end - start;
-            end = get_time();
-            time_taken = end - start;
             if(status==0){
                 printf("[%.1f] (Invalid Input) > ", time_taken);
-                printf("[%.1f] (Invalid Input) > ", time_taken);
             }else{
-                printf("[%.1f] (ok) > ", time_taken);
                 printf("[%.1f] (ok) > ", time_taken);
             }
             continue;
         }
         short_int op_row = parsed.target[0];
         short_int op_col = parsed.target[1];
-        short_int op_row = parsed.target[0];
-        short_int op_col = parsed.target[1];
         ParsedInput previous_parsed;
-        short_int previous_value;
         previous_parsed = sheet[op_row][op_col].parsed;
         sheet[op_row][op_col].parsed = parsed;
 
