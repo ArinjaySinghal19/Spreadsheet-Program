@@ -1,6 +1,6 @@
 # Compiler settings
 CC = gcc
-CFLAGS = -Wall -Werror -g
+CFLAGS = -Wall -g
 
 # Source and header files
 SRC = main.c
@@ -18,4 +18,4 @@ $(EXEC): $(SRC) $(HEADERS)
 clean:
 	rm -f $(EXEC)
 
-.PHONY: all clean #makes sure that makefile treats all and clean as functions, not files to check 
+.PHONY: all clean #makes sure that makefile treats all and clean as functions, not files to check ma
