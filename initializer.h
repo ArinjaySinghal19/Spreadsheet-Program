@@ -16,7 +16,7 @@ typedef struct Node{
 
 typedef struct {
     short_int target[2]; // Target cell (row, col)
-    unsigned int expression_type : 2; // 0 for value, 1 for expression, 2 for function, 3 for sleep
+    int expression_type; // 0 for value, 1 for expression, 2 for function, 3 for sleep
     union {
         struct {
             short_int value[2]; // Value (if expression_type=0)
@@ -45,6 +45,7 @@ typedef struct cell{
     short_int col;
     Node *dependencies;
     bool is_dirty;
+    bool is_in_stack;
     ParsedInput parsed;
 } cell;
 
@@ -55,13 +56,13 @@ void initialize_parsed_input(ParsedInput* input) {
     // Initialize target coordinates
     input->target[0] = 0;
     input->target[1] = 0;
-    
-    // Initialize expression type
-    input->expression_type = -1;
+
     
     // Initialize all union members to 0
     // We can use memset since we want all bytes to be 0
     memset(&input->content, 0, sizeof(input->content));
+    // Initialize expression type
+    input->expression_type = -1;
 }
 
 
@@ -102,6 +103,7 @@ void initialize_sheet(cell ***sheet, short_int rows, short_int cols){
             (*sheet)[i][j].col = j;
             (*sheet)[i][j].dependencies = NULL;
             (*sheet)[i][j].is_dirty = false;
+            (*sheet)[i][j].is_in_stack = false;
             initialize_parsed_input(&(*sheet)[i][j].parsed);
         }
     }

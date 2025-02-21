@@ -51,7 +51,7 @@ void free_parents(cell **sheet, short_int row, short_int col, ParsedInput previo
     if(previous_parsed.expression_type == 0) {
         short_int row1 = previous_parsed.content.value_data.value[0];
         short_int col1 = previous_parsed.content.value_data.value[1];
-        if(row1 != -1) sheet[row1][col1].dependencies = free_from_list(sheet[row1][col1].dependencies, row, col);
+        if(row1 != -1) sheet[row1][col1].dependencies = free_from_list(sheet[row1][col1].dependencies, row, col);     
         return;
     }
     if(previous_parsed.expression_type == 1){
@@ -137,31 +137,33 @@ void print_dependencies(cell **sheet, short_int row, short_int col){
 
 void mark_dirty(cell **sheet, short_int row, short_int col){
     sheet[row][col].is_dirty = true;
+    sheet[row][col].is_in_stack = true;
     Node *temp = sheet[row][col].dependencies;
     while(temp != NULL){
-        if (sheet[temp->row][temp->col].is_dirty == false){
-            mark_dirty(sheet, temp->row, temp->col);
-        }
-        else{
+        if(sheet[temp->row][temp->col].is_in_stack){
+            sheet[row][col].is_in_stack = false;
+            sheet[row][col].is_dirty = false;
             cycle = true;
-            Node *new_node = (Node *)malloc(sizeof(Node));
-            new_node->row = row;
-            new_node->col = col;
-            if(dfs_topo==NULL) dfs_topo = new_node;
-            else{
-                new_node->next = dfs_topo;
-                dfs_topo = new_node;
-            }
+            return;
+        }
+        if(!sheet[temp->row][temp->col].is_dirty) mark_dirty(sheet, temp->row, temp->col);
+        if(cycle){
+            sheet[row][col].is_in_stack = false;
+            sheet[row][col].is_dirty = false;
             return;
         }
         temp = temp->next;
     }
+    sheet[row][col].is_in_stack = false;
     Node *new_node = (Node *)malloc(sizeof(Node));
     new_node->row = row;
     new_node->col = col;
-    if(dfs_topo==NULL) dfs_topo = new_node;
-    else{
-        new_node->next = dfs_topo;
+    new_node->next = NULL;
+    if(dfs_topo == NULL){
+        dfs_topo = new_node;
+    }else{
+        Node *temp = dfs_topo;
+        new_node->next = temp;
         dfs_topo = new_node;
     }
 }
@@ -204,6 +206,7 @@ void free_dirty_array(cell **sheet){
         short_int row = temp->row;
         short_int col = temp->col;
         sheet[row][col].is_dirty = false;
+        sheet[row][col].is_in_stack = false;
         Node *next = temp->next;
         free(temp);
         temp = next;
