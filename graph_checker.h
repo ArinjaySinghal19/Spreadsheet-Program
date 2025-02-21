@@ -11,17 +11,26 @@ bool cycle = false;
 Node* dfs_topo = NULL;
 
 
-void add_dependency(cell **sheet, short_int row, short_int col, short_int dep_row, short_int dep_col){
+void add_dependency(cell **sheet, short_int row, short_int col, short_int dep_row, short_int dep_col) {
+    Node *current = sheet[row][col].dependencies;
+    Node *prev = NULL; 
+
+    while (current != NULL) {
+        if (current->row == dep_row && current->col == dep_col) {
+            return;
+        }
+        prev = current;
+        current = current->next;
+    }
     Node *new_node = (Node *)malloc(sizeof(Node));
     new_node->row = dep_row;
     new_node->col = dep_col;
     new_node->next = NULL;
-    if(sheet[row][col].dependencies == NULL){
+
+    if (prev == NULL) {
         sheet[row][col].dependencies = new_node;
-    }else{
-        Node *temp = sheet[row][col].dependencies;
-        new_node->next = temp;
-        sheet[row][col].dependencies = new_node;
+    } else { 
+        prev->next = new_node;
     }
 }
 
@@ -246,5 +255,3 @@ short_int change(cell **sheet, short_int row, short_int col, ParsedInput previou
 
     return 1;
 }
-
-
