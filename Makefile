@@ -2,20 +2,35 @@
 CC = gcc
 CFLAGS = -Wall -g
 
-# Source and header files
+# Directories
+BUILD_DIR = target/release
 SRC = main.c
 HEADERS = $(wildcard *.h)
-EXEC = sheet
+EXEC = $(BUILD_DIR)/spreadsheet
 
-# Default target
+# Test files
+TEST_SRC = testsuite.c
+TEST_EXEC = $(BUILD_DIR)/testsuite
+
+# Ensure the build directory exists before compiling
 all: $(EXEC)
 
 # Build the executable
 $(EXEC): $(SRC) $(HEADERS)
+	mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $(SRC)
+
+# Build the test suite
+$(TEST_EXEC): $(TEST_SRC)
+	mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) -o $@ $(TEST_SRC)
+
+# Target to build and run tests
+test: $(EXEC) $(TEST_EXEC)
+	./$(TEST_EXEC)
 
 # Clean generated files
 clean:
-	rm -f $(EXEC)
+	rm -rf $(BUILD_DIR)
 
-.PHONY: all clean #makes sure that makefile treats all and clean as functions, not files to check ma
+.PHONY: all clean test
