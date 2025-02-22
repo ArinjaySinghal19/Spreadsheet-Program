@@ -10,14 +10,14 @@ ParsedInput parsed;
 
 int main(int argc, char* argv[]) {
     if (argc !=3){
-        printf("invalid input\n");
+        printf("Invalid input\n");
         return 0;
     }
     short_int rows, cols;
     rows = string_to_nat(argv[1]);
     cols = string_to_nat(argv[2]);
     if (rows == -1 || cols == -1){
-        printf("invalid input\n");
+        printf("Invalid input\n");
         return 0;
     }
 
