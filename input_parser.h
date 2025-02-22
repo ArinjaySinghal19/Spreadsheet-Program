@@ -122,6 +122,8 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
     if (strchr(expr, '+') || strchr(expr, '-') || strchr(expr, '*') || strchr(expr, '/')) {
         parsed->expression_type = 1;
         short_int i = 0;
+        if(expr[i] == '-') i++;
+        else if(expr[i] == '+') i++;
         while (expr[i] != '+' && expr[i] != '-' && expr[i] != '*' && expr[i] != '/') i++;
         parsed->content.expression_data.expression_operator = expr[i];
         //divide expression into two values
