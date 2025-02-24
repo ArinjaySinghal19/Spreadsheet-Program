@@ -139,6 +139,9 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
         if(status == 1){
             parsed->content.expression_data.is_value_2 = 1;
         }
+        if(status == 2){
+            parsed->content.expression_data.is_value_2 = 0;
+        }
         
         return 1;
     }
