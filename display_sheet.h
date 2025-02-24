@@ -54,18 +54,20 @@ void display_sheet(cell *** sheet, short_int rows, short_int cols, short_int tog
     return;
 }
 
-short_int process_display(short_int status, short_int *toggle_display, short_int *sr, short_int *sc, short_int rows, short_int  cols) {
-    if(status == 6) *sr = max(0, *sr - 10);
-    else if(status == 7) *sc = max(0, *sc - 10);
+short_int process_display(short_int status, bool *toggle_display, int *sr_sc, short_int rows, short_int  cols) {
+    short_int sr = (*sr_sc)>>16;
+    short_int sc = (*sr_sc)&0x0000FFFF;
+    if(status == 6) sr = max(0, sr - 10);
+    else if(status == 7) sc = max(0, sc - 10);
     else if(status == 8) {
-        *sr = *sr + 10;
-        short_int er = min(*sr + 10, rows);
-        *sr = max(er - 10, 0);
+        sr = sr + 10;
+        short_int er = min(sr + 10, rows);
+        sr = max(er - 10, 0);
     }
     else if(status == 9) {
-        *sc = *sc + 10;
-        short_int ec = min(*sc + 10, cols);
-        *sc = max(ec - 10, 0);
+        sc = sc + 10;
+        short_int ec = min(sc + 10, cols);
+        sc = max(ec - 10, 0);
     }
     else if(status == 10) {
         *toggle_display = 0;
@@ -74,5 +76,6 @@ short_int process_display(short_int status, short_int *toggle_display, short_int
     }else{
         return 0;
     }
+    *sr_sc = (sr<<16) + sc;
     return 1;
 }

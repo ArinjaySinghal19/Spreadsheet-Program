@@ -13,9 +13,9 @@
 
 // Structure to hold parsed input
 
-short_int parse_value(const char *cell, short_int *row, short_int *col, short_int sheet_rows, short_int sheet_cols) {
-    if (parse_cell(cell, row, col, sheet_rows, sheet_cols)) {
-        return 1;
+short_int parse_value(const char *cell, int *value, short_int sheet_rows, short_int sheet_cols) { //returns 0: error, 1: value, 2: cell
+    if (parse_cell(cell, value, sheet_rows, sheet_cols)) {
+        return 2; 
     }
     //check if string is a number
     short_int sign = 1;
@@ -34,8 +34,7 @@ short_int parse_value(const char *cell, short_int *row, short_int *col, short_in
             return 0;
         }
     }
-    *row = -1;
-    *col = atoi(cell+iter)*sign;
+    *value = sign*atoi(cell);
     return 1;
 }
 
@@ -43,7 +42,6 @@ short_int evaluate_range(ParsedInput *parsed, const char *input, short_int sheet
     // Parse the range (e.g., A1:A10)
     char end_cell[32], start_cell[32];
     if(sscanf(input, "%31[^:]:%31s", start_cell, end_cell) != 2) {
-    
         return 0; // Invalid range format
     }
     if(end_cell[strlen(end_cell)-1] == ')') {
@@ -53,15 +51,17 @@ short_int evaluate_range(ParsedInput *parsed, const char *input, short_int sheet
     }
     if(start_cell[0]!='(') return 0; // Invalid range format
 
-    if (!parse_cell(&start_cell[1], &parsed->content.function_data.function_range[0], &parsed->content.function_data.function_range[1], sheet_rows, sheet_cols)) {
+    if (!parse_cell(&start_cell[1], &parsed->content.function_data.function_range[0], sheet_rows, sheet_cols)) {
         return 0; // Invalid start cell
     }
-    if (!parse_cell(end_cell, &parsed->content.function_data.function_range[2], &parsed->content.function_data.function_range[3], sheet_rows, sheet_cols)) {
+    if (!parse_cell(end_cell, &parsed->content.function_data.function_range[1], sheet_rows, sheet_cols)) {
         return 0; // Invalid end cell
     }
-    if((parsed->content.function_data.function_range[0] > parsed->content.function_data.function_range[2]) || (parsed->content.function_data.function_range[1] > parsed->content.function_data.function_range[3])) {
-        return 0; // Invalid range
-    }
+    short_int start_row = (parsed->content.function_data.function_range[0]) >> 16;
+    short_int start_col = (parsed->content.function_data.function_range[0]) & 0xFFFF;
+    short_int end_row = (parsed->content.function_data.function_range[1]) >> 16;
+    short_int end_col = (parsed->content.function_data.function_range[1]) & 0xFFFF;
+    if(start_row > end_row || start_col > end_col) return 0; // Invalid range
     return 1;
 }
 
@@ -106,18 +106,16 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
             return 0; // Invalid SLEEP function format
         }
         expr[strlen(expr)-1] = '\0';
-        if(!parse_value(expr+6, &parsed->content.sleep_data.sleep_value[0], &parsed->content.sleep_data.sleep_value[1], sheet_rows, sheet_cols)) {
-            return 0; // Invalid value
+        short_int status = parse_value(expr+6, &parsed->content.sleep_data.sleep_value, sheet_rows, sheet_cols);
+        if(status == 0) return 0; // Invalid sleep value
+        if(status == 1){
+            parsed->content.sleep_data.is_value = 1;
+        }
+        if(status == 2){
+            parsed->content.sleep_data.is_value = 0;
         }
         return 1;
     }
-
-    // If not a function or expression, then it must be a value
-    parsed->expression_type = 0;
-    if (parse_value(expr, &parsed->content.value_data.value[0], &parsed->content.value_data.value[1], sheet_rows, sheet_cols)) {
-        return 1; // Invalid value
-    }
-
     // Check if the expression is an arithmetic expression: check for the presence of operators (+, -, *, /)
     if (strchr(expr, '+') || strchr(expr, '-') || strchr(expr, '*') || strchr(expr, '/')) {
         parsed->expression_type = 1;
@@ -128,16 +126,34 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
         parsed->content.expression_data.expression_operator = expr[i];
         //divide expression into two values
         expr[i] = '\0';
-        if (!parse_value(expr, &parsed->content.expression_data.expression_cell_1[0], &parsed->content.expression_data.expression_cell_1[1], sheet_rows, sheet_cols)) {
-            return 0; // Invalid first cell
+        short_int status = parse_value(expr, &parsed->content.expression_data.expression_cell[0], sheet_rows, sheet_cols);
+        if(status == 0) return 0; // Invalid first cell
+        if(status == 1){
+            parsed->content.expression_data.is_value_1 = 1;
         }
-        if (!parse_value(expr+i+1, &parsed->content.expression_data.expression_cell_2[0], &parsed->content.expression_data.expression_cell_2[1], sheet_rows, sheet_cols)) {
-            return 0; // Invalid second cell
+        if(status == 2){
+            parsed->content.expression_data.is_value_1 = 0;
         }
+        status = parse_value(expr+i+1, &parsed->content.expression_data.expression_cell[1], sheet_rows, sheet_cols);
+        if(status == 0) return 0; // Invalid second cell
+        if(status == 1){
+            parsed->content.expression_data.is_value_2 = 1;
+        }
+        
         return 1;
     }
-    
-    return 0;
+
+    // If not a function or expression, then it must be a value
+    parsed->expression_type = 0;
+    short_int status = parse_value(expr, &parsed->content.value_data.value, sheet_rows, sheet_cols);
+    if(status == 0) return 0; // Invalid value
+    if(status == 1){
+        parsed->content.value_data.is_value = 1;
+    }
+    if(status == 2){
+        parsed->content.value_data.is_value = 0;
+    }
+    return 1;
 }
 
 short_int handle_display(const char *input) {
@@ -171,15 +187,16 @@ short_int parse_input(const char *input, ParsedInput *parsed, short_int sheet_ro
     if (sscanf(input, "%31[^=]=%127s", cell, expr) != 2) {
         return (handle_display(input));
     }
-    
     if(expr[strlen(expr)-1] == '\n') {
         expr[strlen(expr)-1] = '\0';
     }
     // Parse the cell reference
-    if (!parse_cell(cell, &parsed->target[0], &parsed->target[1], sheet_rows, sheet_cols)) {
+    int target_value = -1;
+    if (!parse_cell(cell, &target_value, sheet_rows, sheet_cols)) {
         return 0; // Invalid cell reference
     }
-
+    parsed->target[0] = (target_value) >> 16;
+    parsed->target[1] = (target_value) & 0xFFFF;
     if(!handle_expression(parsed, expr, sheet_rows, sheet_cols)) {
         return 0; // Invalid expression
     }
@@ -202,16 +219,15 @@ short_int handle_input(const char *input, short_int sheet_rows, short_int sheet_
         printf("Expression type: %d\n", parsed.expression_type);
         if(parsed.expression_type == 3) {
             printf("Function: SLEEP\n");
-            printf("Value: (%d, %d)\n", parsed.content.sleep_data.sleep_value[0], parsed.content.sleep_data.sleep_value[1]);
+            printf("Value: (%d, %d)\n", parsed.content.sleep_data.sleep_value, parsed.content.sleep_data.is_value);
         }        
         else if (parsed.expression_type == 0) {
-            printf("Value: (%d, %d)\n", parsed.content.value_data.value[0], parsed.content.value_data.value[1]);
+            printf("Value: (%d, %d)\n", parsed.content.value_data.value, parsed.content.value_data.is_value);
         } else if (parsed.expression_type == 1) {
-            printf("Expression: (%d, %d) %c (%d, %d)\n", parsed.content.expression_data.expression_cell_1[0], parsed.content.expression_data.expression_cell_1[1],
-                   parsed.content.expression_data.expression_operator, parsed.content.expression_data.expression_cell_2[0], parsed.content.expression_data.expression_cell_2[1]);
+            printf("Expression: (%d, %d) %c (%d, %d)\n", (parsed.content.expression_data.expression_cell[0] >> 16), (parsed.content.expression_data.expression_cell[0] & 0xFFFF), parsed.content.expression_data.expression_operator, (parsed.content.expression_data.expression_cell[1] >> 16), (parsed.content.expression_data.expression_cell[1] & 0xFFFF));
         } else if (parsed.expression_type == 2) {
             printf("Function: %d\n", parsed.content.function_data.function_operator);
-            printf("Range: (%d, %d) to (%d, %d)\n", parsed.content.function_data.function_range[0], parsed.content.function_data.function_range[1], parsed.content.function_data.function_range[2], parsed.content.function_data.function_range[3]);
+            printf("Range: (%d, %d) to (%d, %d)\n", (parsed.content.function_data.function_range[0] >> 16), (parsed.content.function_data.function_range[0] & 0xFFFF), (parsed.content.function_data.function_range[1] >> 16), (parsed.content.function_data.function_range[1] & 0xFFFF));  
         }
         return CONTINUE_PROGRAM;
     }

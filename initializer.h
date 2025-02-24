@@ -14,33 +14,42 @@ typedef struct Node{
     struct Node *next;
 } Node;
 
+
 typedef struct {
     short_int target[2]; // Target cell (row, col)
-    int expression_type; // 0 for value, 1 for expression, 2 for function, 3 for sleep
+    short_int expression_type; // 0 for value, 1 for expression, 2 for function, 3 for sleep, -1 for no assignment
     union {
         struct {
-            short_int value[2]; // Value (if expression_type=0)
+            // short_int value[2]; // Value (if expression_type=0)
+            int value;
+            bool is_value; // If value is a number or a cell reference
         } value_data;
 
         struct {
-            short_int expression_cell_1[2]; // First cell in expression
-            short_int expression_cell_2[2]; // Second cell in expression
+            // short_int expression_cell_1[2]; // First cell in expression
+            // short_int expression_cell_2[2]; // Second cell in expression
+            int expression_cell[2]; // Cell in expression
             char expression_operator; // Operator in expression ( +, -, *, /)
+            bool is_value_1; // If cell 1 is a number or a cell reference
+            bool is_value_2; // If cell 2 is a number or a cell reference
         } expression_data;
 
         struct {
             char function_operator; 
-            short_int function_range[4]; // Function range (start row, start col, end row, end col)
+            // short_int function_range[4]; // Function range (start row, start col, end row, end col)
+            int function_range[2]; // Function range
         } function_data;
 
         struct {
-            short_int sleep_value[2]; // Sleep value (if expression_type=3)
+            // short_int sleep_value[2]; // Sleep value (if expression_type=3)
+            int sleep_value;
+            bool is_value; // If value is a number or a cell reference
         } sleep_data;
     } content;
 } ParsedInput;
 
 typedef struct cell{
-    short_int value;
+    int value;
     short_int row;
     short_int col;
     Node *dependencies;
@@ -154,9 +163,7 @@ short_int is_valid_cell(const char *cell) {
 }
 
 // Parse a cell reference (e.g., "AA10" -> row=9, col=26)
-short_int parse_cell(const char *cell, short_int *row, short_int *col, short_int sheet_rows, short_int sheet_cols) {
-    short_int original_row = *row;
-    short_int original_col = *col;
+short_int parse_cell(const char *cell, int *value, short_int sheet_rows, short_int sheet_cols) {
     if (!is_valid_cell(cell)) return 0;
 
     short_int i = 0;
@@ -170,24 +177,21 @@ short_int parse_cell(const char *cell, short_int *row, short_int *col, short_int
     strcpy(row_part, cell + i);
 
     // Convert column part to index (e.g., "A"=0, "AA"=26)
-    *col = 0;
+    short_int col = 0, row = 0;
     for (short_int j = 0; col_part[j] != '\0'; j++) {
-        *col = *col * 26 + (toupper(col_part[j]) - 'A' + 1);
+        col = col * 26 + (toupper(col_part[j]) - 'A' + 1);
     }
-    if(*col == 0) return 0; // Invalid column part
-    *col -= 1;
+    if(col == 0) return 0; // Invalid column part
+    col -= 1;
     if(row_part[0] == '\0') return 0; // Invalid row part
     for(short_int i = 1; row_part[i] != '\0'; i++) {
         if(!isdigit(row_part[i])) {
             return 0;
         }
     }
-    *row = atoi(row_part)-1; // Convert to 0-based indexing
-    if(*row < 0 || *row >= sheet_rows || *col < 0 || *col >= sheet_cols){
-        *row = original_row;
-        *col = original_col;
-        return 0; // Invalid row index
-    }
+    row = atoi(row_part)-1; // Convert to 0-based indexing
+    if(row < 0 || row >= sheet_rows || col < 0 || col >= sheet_cols) return 0; // Out of bounds
+    *value = (row << 16) | col;
     return 1;
 }
 

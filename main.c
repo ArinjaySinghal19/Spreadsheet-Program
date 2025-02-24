@@ -27,14 +27,15 @@ int main(int argc, char* argv[]) {
         printf("Invalid input\n");
         return 0;
     }
-    short_int sr = 0, sc = 0, toggle_display = 1;
+    bool toggle_display = 1;
+    int sr_sc = 0;
     cell **sheet;
     initialize_sheet(&sheet, rows, cols);
     if(sheet == NULL){
         printf("Memory allocation failed\n");
         return 0;
     }
-    display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
+    display_sheet(&sheet, rows, cols, toggle_display, (sr_sc>>16), (sr_sc&0xFFFF));
     double end = get_time();
     double time_taken = end - start;
     printf("[%.1f] (ok) > ", time_taken);
@@ -50,7 +51,7 @@ int main(int argc, char* argv[]) {
         short_int status = parse_input(input, &parsed, rows, cols);
 
         if(status>=6 && status<=11){
-            if(!process_display(status, &toggle_display, &sr, &sc, rows, cols)){
+            if(!process_display(status, &toggle_display, &sr_sc, rows, cols)){
                 status=0;
             }else{
                 status = 2;
@@ -60,7 +61,7 @@ int main(int argc, char* argv[]) {
             if(input[strlen(input)-1] == '\n'){
                 input[strlen(input)-1] = '\0';
             }
-            if(!parse_cell(input + 10, &sr, &sc, rows, cols)){
+            if(!parse_cell(input + 10, &sr_sc, rows, cols)){
                 status=0;
             }else{
                 status = 2;
@@ -68,7 +69,7 @@ int main(int argc, char* argv[]) {
             }
         }
         if(status==0 || status == 2){
-            display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
+            display_sheet(&sheet, rows, cols, toggle_display, (sr_sc>>16), (sr_sc&0xFFFF));
             end = get_time();
             time_taken = end - start;
             if(status==0){
@@ -86,14 +87,14 @@ int main(int argc, char* argv[]) {
 
         short_int success = change(sheet, op_row, op_col, previous_parsed);
         if(!success){
-            display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
+            display_sheet(&sheet, rows, cols, toggle_display, (sr_sc>>16), (sr_sc&0xFFFF));
             end = get_time();
             time_taken = end - start;
             printf("[%.1f] (Cycle Detected) > ", time_taken);
             continue;
         }
 
-        display_sheet(&sheet, rows, cols, toggle_display, sr, sc);
+        display_sheet(&sheet, rows, cols, toggle_display, (sr_sc>>16), (sr_sc&0xFFFF));
 
         end = get_time();
         time_taken = end - start;
