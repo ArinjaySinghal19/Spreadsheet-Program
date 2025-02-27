@@ -6,31 +6,43 @@ CFLAGS = -Wall -g
 BUILD_DIR = target/release
 SRC = main.c
 HEADERS = $(wildcard *.h)
-EXEC = $(BUILD_DIR)/spreadsheet
+EXECUTABLE = spreadsheet
+
+# Main executable path
+EXEC = $(BUILD_DIR)/$(EXECUTABLE)
 
 # Test files
 TEST_SRC = testsuite.c
 TEST_EXEC = $(BUILD_DIR)/testsuite
 
-# Ensure the build directory exists before compiling
+# Default target
 all: $(EXEC)
 
-# Build the executable
-$(EXEC): $(SRC) $(HEADERS)
+# Ensure the build directory exists
+$(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
+
+# Build the executable in release directory
+$(EXEC): $(SRC) $(HEADERS) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $(SRC)
 
 # Build the test suite
-$(TEST_EXEC): $(TEST_SRC)
-	mkdir -p $(BUILD_DIR)
+$(TEST_EXEC): $(TEST_SRC) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $(TEST_SRC)
+	chmod +x testing.sh
 
 # Target to build and run tests
 test: $(EXEC) $(TEST_EXEC)
-	./$(TEST_EXEC)
+	$(TEST_EXEC)
+
+# Generate report (placeholder for LaTeX compilation)
+report:
+	# Placeholder for LaTeX compilation
+	echo "Report generation placeholder"
 
 # Clean generated files
 clean:
 	rm -rf $(BUILD_DIR)
+	rm -f output.txt
 
-.PHONY: all clean test
+.PHONY: all clean test report
