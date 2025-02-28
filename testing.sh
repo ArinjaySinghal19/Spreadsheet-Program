@@ -7,6 +7,7 @@ run_test_case() {
     local cols=$2
     local num_instructions=$3
     local test_num=$4
+    local executable="target/release/spreadsheet"
 
     echo "Running test case $test_num: $rows x $cols grid with $num_instructions instructions"
 
@@ -17,7 +18,7 @@ run_test_case() {
     cat > temp_expect.sh << EOF
 #!/usr/bin/expect -f
 set timeout -1
-spawn ./sheet $rows $cols
+spawn $executable $rows $cols
 
 # Read and execute each instruction
 set file [open "temp_instructions.txt" r]
@@ -37,10 +38,16 @@ EOF
     chmod +x temp_expect.sh
 
     # Run the expect script and capture output
-    ./temp_expect.sh >> output.txt 2>/dev/null
+    ./temp_expect.sh > temp_output.txt 2>/dev/null
+    
+    # Append the output to the main output file
+    cat temp_output.txt >> output.txt
+    
+    # Add separator after each test case
+    echo "*****" >> output.txt
 
     # Remove temporary files
-    rm temp_expect.sh temp_instructions.txt
+    rm temp_expect.sh temp_instructions.txt temp_output.txt
 
     # Skip processed lines in temp_input.txt
     tail -n +$((num_instructions + 1)) temp_input.txt > temp_input2.txt
@@ -49,8 +56,16 @@ EOF
 
 # Main testing logic
 main() {
+    local executable="target/release/spreadsheet"
+    
     # Clear previous output file
     > output.txt
+
+    # Check if the executable exists
+    if [ ! -f "$executable" ]; then
+        echo "Error: $executable not found. Please run 'make' first."
+        exit 1
+    fi
 
     # Read number of test cases
     read num_tests < input.txt
@@ -70,7 +85,7 @@ main() {
     done
 
     # Clean up temporary files
-    rm temp_input.txt
+    rm -f temp_input.txt
 
     # Compare output with expected output
     if diff -w output.txt expected_output.txt > /dev/null; then
@@ -84,8 +99,8 @@ main() {
 }
 
 # Check if required files exist
-if [ ! -f "./sheet" ]; then
-    echo "Error: sheet executable not found. Please run 'make' first."
+if [ ! -f "target/release/spreadsheet" ]; then
+    echo "Error: spreadsheet executable not found. Please run 'make' first."
     exit 1
 fi
 
