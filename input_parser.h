@@ -40,9 +40,8 @@ short_int parse_value(const char *cell, int *value, short_int sheet_rows, short_
             return 0;  // Invalid format
         }
     }
-    
     // Convert to integer
-    *value = sign * atoi(cell);
+    *value = sign * atoi(cell + iter);
     return 1;  // Numeric value
 }
 
@@ -173,6 +172,17 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
         return 1;
     }
     
+    parsed->expression_type = 0;
+    
+
+    // If not a function or expression, then it must be a value
+    short_int status = parse_value(expr, &parsed->content.value_data.value, sheet_rows, sheet_cols);
+    if (status == 1) {
+        parsed->content.value_data.is_value = 1;
+        return 1;  // Successfully parsed value
+    }
+    
+
     // Check if expression is an arithmetic expression containing operators (+, -, *, /)
     if (strchr(expr, '+') || strchr(expr, '-') || strchr(expr, '*') || strchr(expr, '/')) {
         parsed->expression_type = 1;
@@ -210,17 +220,7 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
         return 1;
     }
     
-    // If not a function or expression, then it must be a simple value
-    parsed->expression_type = 0;
-    
-    short_int status = parse_value(expr, &parsed->content.value_data.value, sheet_rows, sheet_cols);
-    if (status == 0) {
-        return 0;  // Invalid value
-    }
-    
-    parsed->content.value_data.is_value = (status == 1);
-    
-    return 1;  // Successfully parsed value
+    return 0;  // Successfully parsed value
 }
 
 /**
