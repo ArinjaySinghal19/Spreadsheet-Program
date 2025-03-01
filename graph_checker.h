@@ -87,8 +87,8 @@ Node* free_from_list(Node* head, int row, int col) {
  */
 void free_parents(cell **sheet, short_int row, short_int col, ParsedInput previous_parsed) {
     // Handle simple value reference
-    if (previous_parsed.expression_type == 0) {
-        if (previous_parsed.content.value_data.is_value == 0) {
+    if (previous_parsed.expression_type == '0') {
+        if (previous_parsed.is_value_1 == 0) {
             short_int row1 = previous_parsed.content.value_data.value >> 16;
             short_int col1 = previous_parsed.content.value_data.value & 0xFFFF;
             sheet[row1][col1].dependencies = free_from_list(sheet[row1][col1].dependencies, row, col);
@@ -97,13 +97,13 @@ void free_parents(cell **sheet, short_int row, short_int col, ParsedInput previo
     }
     
     // Handle binary expressions (operations like +, -, *, /)
-    if (previous_parsed.expression_type == 1) {
-        if (previous_parsed.content.expression_data.is_value_1 == 0) {
+    if (previous_parsed.expression_type == '1') {
+        if (previous_parsed.is_value_1 == 0) {
             short_int row1 = previous_parsed.content.expression_data.expression_cell[0] >> 16;
             short_int col1 = previous_parsed.content.expression_data.expression_cell[0] & 0xFFFF;
             sheet[row1][col1].dependencies = free_from_list(sheet[row1][col1].dependencies, row, col);
         }
-        if (previous_parsed.content.expression_data.is_value_2 == 0) {
+        if (previous_parsed.is_value_2 == 0) {
             short_int row1 = previous_parsed.content.expression_data.expression_cell[1] >> 16;
             short_int col1 = previous_parsed.content.expression_data.expression_cell[1] & 0xFFFF;
             sheet[row1][col1].dependencies = free_from_list(sheet[row1][col1].dependencies, row, col);
@@ -112,7 +112,7 @@ void free_parents(cell **sheet, short_int row, short_int col, ParsedInput previo
     }
     
     // Handle range functions (SUM, AVG, etc.)
-    if (previous_parsed.expression_type == 2) {
+    if (previous_parsed.expression_type == '2') {
         short_int st_row = previous_parsed.content.function_data.function_range[0];
         short_int st_col = previous_parsed.content.function_data.function_range[1];
         short_int end_row = previous_parsed.content.function_data.function_range[2];
@@ -127,8 +127,8 @@ void free_parents(cell **sheet, short_int row, short_int col, ParsedInput previo
     }
     
     // Handle SLEEP function
-    if (previous_parsed.expression_type == 3) {
-        if (previous_parsed.content.sleep_data.is_value == 0) {
+    if (previous_parsed.expression_type == '3') {
+        if (previous_parsed.is_value_1 == 0) {
             short_int row1 = previous_parsed.content.sleep_data.sleep_value >> 16;
             short_int col1 = previous_parsed.content.sleep_data.sleep_value & 0xFFFF;
             sheet[row1][col1].dependencies = free_from_list(sheet[row1][col1].dependencies, row, col);
@@ -152,8 +152,8 @@ void update_dependencies(cell **sheet, short_int row, short_int col, ParsedInput
     ParsedInput parsed = sheet[row][col].parsed;
     
     // Handle simple value reference
-    if (parsed.expression_type == 0) {
-        if (parsed.content.value_data.is_value == 0) {
+    if (parsed.expression_type == '0') {
+        if (parsed.is_value_1 == 0) {
             short_int row1 = parsed.content.value_data.value >> 16;
             short_int col1 = parsed.content.value_data.value & 0xFFFF;
             add_dependency(sheet, row1, col1, row, col);
@@ -162,13 +162,13 @@ void update_dependencies(cell **sheet, short_int row, short_int col, ParsedInput
     }
     
     // Handle binary expressions (operations like +, -, *, /)
-    if (parsed.expression_type == 1) {
-        if (parsed.content.expression_data.is_value_1 == 0) {
+    if (parsed.expression_type == '1') {
+        if (parsed.is_value_1 == 0) {
             short_int row1 = parsed.content.expression_data.expression_cell[0] >> 16;
             short_int col1 = parsed.content.expression_data.expression_cell[0] & 0xFFFF;
             add_dependency(sheet, row1, col1, row, col);
         }
-        if (parsed.content.expression_data.is_value_2 == 0) {
+        if (parsed.is_value_2 == 0) {
             short_int row1 = parsed.content.expression_data.expression_cell[1] >> 16;
             short_int col1 = parsed.content.expression_data.expression_cell[1] & 0xFFFF;
             add_dependency(sheet, row1, col1, row, col);
@@ -177,7 +177,7 @@ void update_dependencies(cell **sheet, short_int row, short_int col, ParsedInput
     }
     
     // Handle range functions (SUM, AVG, etc.)
-    if (parsed.expression_type == 2) {
+    if (parsed.expression_type == '2') {
         short_int st_row = (parsed.content.function_data.function_range[0]) >> 16;
         short_int st_col = (parsed.content.function_data.function_range[0]) & 0xFFFF;
         short_int end_row = (parsed.content.function_data.function_range[1]) >> 16;
@@ -192,8 +192,8 @@ void update_dependencies(cell **sheet, short_int row, short_int col, ParsedInput
     }
     
     // Handle SLEEP function
-    if (parsed.expression_type == 3) {
-        if (parsed.content.sleep_data.is_value == 0) {
+    if (parsed.expression_type == '3') {
+        if (parsed.is_value_1 == 0) {
             short_int row1 = parsed.content.sleep_data.sleep_value >> 16;
             short_int col1 = parsed.content.sleep_data.sleep_value & 0xFFFF;
             add_dependency(sheet, row1, col1, row, col);

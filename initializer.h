@@ -13,9 +13,9 @@ typedef int16_t short_int;
  * Node structure for dependency tracking
  */
 typedef struct Node {
+    struct Node *next;
     short_int row;
     short_int col;
-    struct Node *next;
 } Node;
 
 /**
@@ -23,48 +23,45 @@ typedef struct Node {
  */
 typedef struct {
     short_int target[2];         // Target cell (row, col)
-    short_int expression_type;   // 0:value, 1:expression, 2:function, 3:sleep, -1:no assignment
-    
+    char expression_type;  // 0:value, 1:expression, 2:function, 3:sleep, 4:no assignment
+    char operator;         // Operator (+, -, *, /)
+    bool is_value_1;             // If cell 1 is a number or cell reference
+    bool is_value_2;             // If cell 2 is a number or cell reference
     union {
         // Value data (expression_type = 0)
         struct {
             int value;
-            bool is_value;       // If value is a number or a cell reference
         } value_data;
 
         // Expression data (expression_type = 1)
         struct {
             int expression_cell[2];      // Cells in expression
-            char expression_operator;    // Operator (+, -, *, /)
-            bool is_value_1;             // If cell 1 is a number or cell reference
-            bool is_value_2;             // If cell 2 is a number or cell reference
         } expression_data;
 
         // Function data (expression_type = 2)
         struct {
-            char function_operator;
             int function_range[2];       // Function range
         } function_data;
 
         // Sleep data (expression_type = 3)
         struct {
             int sleep_value;
-            bool is_value;               // If value is a number or cell reference
         } sleep_data;
     } content;
 } ParsedInput;
+
+
 
 /**
  * Cell structure representing a spreadsheet cell
  */
 typedef struct cell {
-    int value;
-    short_int row;
-    short_int col;
+    ParsedInput parsed;
     Node *dependencies;
+    int value;         
     bool is_dirty;
     bool is_in_stack;
-    ParsedInput parsed;
+    
 } cell;
 
 /**
@@ -81,7 +78,7 @@ void initialize_parsed_input(ParsedInput* input) {
     memset(&input->content, 0, sizeof(input->content));
     
     // Initialize expression type
-    input->expression_type = -1;
+    input->expression_type = '4';
 }
 
 /**
@@ -121,8 +118,6 @@ void initialize_sheet(cell ***sheet, short_int rows, short_int cols) {
     for (short_int i = 0; i < rows; i++) {
         for (short_int j = 0; j < cols; j++) {
             (*sheet)[i][j].value = 0;
-            (*sheet)[i][j].row = i;
-            (*sheet)[i][j].col = j;
             (*sheet)[i][j].dependencies = NULL;
             (*sheet)[i][j].is_dirty = false;
             (*sheet)[i][j].is_in_stack = false;
@@ -259,3 +254,21 @@ int string_to_nat(char *s) {
     
     return inval ? -1 : cur;
 }
+
+
+
+
+// int main(){
+
+//     printf("size of cell: %lu\n", sizeof(cell));
+//     printf("size of parsed: %lu\n", sizeof(ParsedInput));
+//     printf("size of node: %lu\n", sizeof(Node));
+//     printf("size of Node*: %lu\n", sizeof(Node*));
+//     printf("size of short_int: %lu\n", sizeof(short_int));
+//     printf("size of test struct: %lu\n", sizeof(test));
+//     printf("size of expression_data struct: %lu\n", sizeof(expression_data));
+//     printf("size of test cell struct: %lu\n", sizeof(testcell));
+
+    
+
+// }

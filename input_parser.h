@@ -83,7 +83,6 @@ short_int evaluate_range(ParsedInput *parsed, const char *input, short_int sheet
     short_int start_col = (parsed->content.function_data.function_range[0]) & 0xFFFF;
     short_int end_row = (parsed->content.function_data.function_range[1]) >> 16;
     short_int end_col = (parsed->content.function_data.function_range[1]) & 0xFFFF;
-    
     // Validate range coordinates
     if (start_row > end_row || start_col > end_col) {
         return 0;  // Invalid range (start must be before end)
@@ -100,8 +99,8 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
     
     // Check if expression is MIN function
     if (strncmp(expr, "MIN", 3) == 0) {
-        parsed->expression_type = 2;
-        parsed->content.function_data.function_operator = 0;
+        parsed->expression_type = '2';
+        parsed->operator = '0';
         if (!evaluate_range(parsed, expr + 3, sheet_rows, sheet_cols)) {
             return 0;  // Invalid range in MIN function
         }
@@ -110,8 +109,8 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
     
     // Check if expression is MAX function
     if (strncmp(expr, "MAX", 3) == 0) {
-        parsed->expression_type = 2;
-        parsed->content.function_data.function_operator = 1;
+        parsed->expression_type = '2';
+        parsed->operator = '1';
         if (!evaluate_range(parsed, expr + 3, sheet_rows, sheet_cols)) {
             return 0;  // Invalid range in MAX function
         }
@@ -120,8 +119,8 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
     
     // Check if expression is AVG function
     if (strncmp(expr, "AVG", 3) == 0) {
-        parsed->expression_type = 2;
-        parsed->content.function_data.function_operator = 2;
+        parsed->expression_type = '2';
+        parsed->operator = '2';
         if (!evaluate_range(parsed, expr + 3, sheet_rows, sheet_cols)) {
             return 0;  // Invalid range in AVG function
         }
@@ -130,8 +129,8 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
     
     // Check if expression is SUM function
     if (strncmp(expr, "SUM", 3) == 0) {
-        parsed->expression_type = 2;
-        parsed->content.function_data.function_operator = 3;
+        parsed->expression_type = '2';
+        parsed->operator = '3';
         if (!evaluate_range(parsed, expr + 3, sheet_rows, sheet_cols)) {
             return 0;  // Invalid range in SUM function
         }
@@ -140,8 +139,8 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
     
     // Check if expression is STDEV function
     if (strncmp(expr, "STDEV", 5) == 0) {
-        parsed->expression_type = 2;
-        parsed->content.function_data.function_operator = 4;
+        parsed->expression_type = '2';
+        parsed->operator = '4';
         if (!evaluate_range(parsed, expr + 5, sheet_rows, sheet_cols)) {
             return 0;  // Invalid range in STDEV function
         }
@@ -150,7 +149,7 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
     
     // Check if expression is SLEEP function
     if (strncmp(expr, "SLEEP", 5) == 0) {
-        parsed->expression_type = 3;
+        parsed->expression_type = '3';
         
         // Validate SLEEP function format
         if (expr[5] != '(' || expr[strlen(expr) - 1] != ')') {
@@ -167,25 +166,29 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
         }
         
         // Set is_value flag based on whether it's a constant or cell reference
-        parsed->content.sleep_data.is_value = (status == 1);
+        parsed->is_value_1 = (status == 1);
         
         return 1;
     }
     
-    parsed->expression_type = 0;
+    parsed->expression_type = '0';
     
 
     // If not a function or expression, then it must be a value
     short_int status = parse_value(expr, &parsed->content.value_data.value, sheet_rows, sheet_cols);
     if (status == 1) {
-        parsed->content.value_data.is_value = 1;
+        parsed->is_value_1 = 1;
+        return 1;  // Successfully parsed value
+    }
+    if(status == 2) {
+        parsed->is_value_1 = 0;
         return 1;  // Successfully parsed value
     }
     
 
     // Check if expression is an arithmetic expression containing operators (+, -, *, /)
     if (strchr(expr, '+') || strchr(expr, '-') || strchr(expr, '*') || strchr(expr, '/')) {
-        parsed->expression_type = 1;
+        parsed->expression_type = '1';
         short_int i = 0;
         
         // Skip leading sign for negative numbers
@@ -198,7 +201,7 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
             i++;
         }
         
-        parsed->content.expression_data.expression_operator = expr[i];
+        parsed->operator = expr[i];
         
         // Split expression at operator
         expr[i] = '\0';
@@ -208,14 +211,14 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
         if (status == 0) {
             return 0;  // Invalid first operand
         }
-        parsed->content.expression_data.is_value_1 = (status == 1);
+        parsed->is_value_1 = (status == 1);
         
         // Parse second operand
         status = parse_value(expr + i + 1, &parsed->content.expression_data.expression_cell[1], sheet_rows, sheet_cols);
         if (status == 0) {
             return 0;  // Invalid second operand
         }
-        parsed->content.expression_data.is_value_2 = (status == 1);
+        parsed->is_value_2 = (status == 1);
         
         return 1;
     }
@@ -296,25 +299,25 @@ short_int handle_input(const char *input, short_int sheet_rows, short_int sheet_
     if (parse_input(input, &parsed, sheet_rows, sheet_cols)) {
         // Print parsed input details for debugging
         printf("Target cell: (%d, %d)\n", parsed.target[0], parsed.target[1]);
-        printf("Expression type: %d\n", parsed.expression_type);
+        printf("Expression type: %c\n", parsed.expression_type);
         
         // Print details based on expression type
-        if (parsed.expression_type == 3) {
+        if (parsed.expression_type == '3') {
             printf("Function: SLEEP\n");
             printf("Value: (%d, %d)\n", parsed.content.sleep_data.sleep_value, 
-                  parsed.content.sleep_data.is_value);
-        } else if (parsed.expression_type == 0) {
+                  parsed.is_value_1);
+        } else if (parsed.expression_type == '0') {
             printf("Value: (%d, %d)\n", parsed.content.value_data.value, 
-                  parsed.content.value_data.is_value);
-        } else if (parsed.expression_type == 1) {
+                  parsed.is_value_1);
+        } else if (parsed.expression_type == '1') {
             printf("Expression: (%d, %d) %c (%d, %d)\n", 
                   (parsed.content.expression_data.expression_cell[0] >> 16), 
                   (parsed.content.expression_data.expression_cell[0] & 0xFFFF), 
-                  parsed.content.expression_data.expression_operator, 
+                  parsed.operator,
                   (parsed.content.expression_data.expression_cell[1] >> 16), 
                   (parsed.content.expression_data.expression_cell[1] & 0xFFFF));
-        } else if (parsed.expression_type == 2) {
-            printf("Function: %d\n", parsed.content.function_data.function_operator);
+        } else if (parsed.expression_type == '2') {
+            printf("Function: %c\n", parsed.operator);
             printf("Range: (%d, %d) to (%d, %d)\n", 
                   (parsed.content.function_data.function_range[0] >> 16), 
                   (parsed.content.function_data.function_range[0] & 0xFFFF), 

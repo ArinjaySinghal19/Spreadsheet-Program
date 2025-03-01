@@ -8,6 +8,8 @@
 ParsedInput parsed;
 
 int main(int argc, char* argv[]) {
+
+
     // Validate command line arguments
     if (argc != 3) {
         printf("Invalid input\n");
