@@ -117,3 +117,26 @@ spawn target/release/spreadsheet 12 13
 12	-6	-3	
 [0.0] (ok) > q
 *****
+spawn target/release/spreadsheet 4 4
+	A	B	C	D	
+1	0	0	0	0	
+2	0	0	0	0	
+3	0	0	0	0	
+4	0	0	0	0	
+[0.0] (ok) > disable_output
+[0.0] (ok) > A1=MAX(B1:D4)
+[0.0] (ok) > B1=9
+[0.0] (ok) > A2=MIN(B1:D4)
+[0.0] (ok) > A3=A1+A2
+[0.0] (ok) > C1=-2
+[0.0] (ok) > B3=A3
+[0.0] (Cycle Detected) > C2=-5
+[0.0] (ok) > B3=A4
+[0.0] (ok) > A4=A1
+[0.0] (Cycle Detected) > D1=D2
+[0.0] (ok) > D2=D3
+[0.0] (ok) > D3=D4
+[0.0] (ok) > D4=D1
+[0.0] (Cycle Detected) > B2=SLEEP(C1)
+[0.0] (ok) > q
+*****
