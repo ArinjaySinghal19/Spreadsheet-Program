@@ -1,4 +1,4 @@
-3
+4
 10 10 5
 scroll_to H10
 J10=I10+I10
@@ -26,3 +26,20 @@ L12=2*M12
 L11=SUM(M11:M12)
 L11=L11+L12
 M12=-3
+4 4 15
+disable_output
+A1=MAX(B1:D4)
+B1=9
+A2=MIN(B1:D4)
+A3=A1+A2
+C1=-2
+B3=A3
+C2=-5
+B3=A4
+A4=A1
+D1=D2
+D2=D3
+D3=D4
+D4=D1
+B2=SLEEP(C1)
+
