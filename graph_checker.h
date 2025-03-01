@@ -113,13 +113,14 @@ void free_parents(cell **sheet, short_int row, short_int col, ParsedInput previo
     
     // Handle range functions (SUM, AVG, etc.)
     if (previous_parsed.expression_type == '2') {
-        short_int st_row = previous_parsed.content.function_data.function_range[0];
-        short_int st_col = previous_parsed.content.function_data.function_range[1];
-        short_int end_row = previous_parsed.content.function_data.function_range[2];
-        short_int end_col = previous_parsed.content.function_data.function_range[3];
-        
+        short_int st_row = previous_parsed.content.function_data.function_range[0] >> 16;
+        short_int st_col = previous_parsed.content.function_data.function_range[0] & 0xFFFF;
+        short_int end_row = previous_parsed.content.function_data.function_range[1] >> 16;
+        short_int end_col = previous_parsed.content.function_data.function_range[0] & 0xFFFF;
+        // printf("Removing dependencies from range (%d, %d) to (%d, %d)\n", st_row, st_col, end_row, end_col);
         for (short_int i = st_row; i <= end_row; i++) {
             for (short_int j = st_col; j <= end_col; j++) {
+                // printf("Removing dependency from (%d, %d) to (%d, %d)\n", i, j, row, col);
                 sheet[i][j].dependencies = free_from_list(sheet[i][j].dependencies, row, col);
             }
         }
@@ -227,12 +228,14 @@ void print_dependencies(cell **sheet, short_int row, short_int col) {
 void mark_dirty(cell **sheet, short_int row, short_int col) {
     sheet[row][col].is_dirty = true;
     sheet[row][col].is_in_stack = true;
+    // printf("Marking (%d, %d) as dirty\n", row, col);
     
     // Check all dependent cells
     Node *temp = sheet[row][col].dependencies;
     while (temp != NULL) {
         // Check for cycles
         if (sheet[temp->row][temp->col].is_in_stack) {
+            // printf("Cycle detected at (%d, %d)\n", temp->row, temp->col);
             sheet[row][col].is_in_stack = false;
             sheet[row][col].is_dirty = false;
             cycle = true;
@@ -246,6 +249,7 @@ void mark_dirty(cell **sheet, short_int row, short_int col) {
         
         // Propagate cycle detection
         if (cycle) {
+            // printf("Propagating cycle detection, clearing (%d, %d)\n", row, col);
             sheet[row][col].is_in_stack = false;
             sheet[row][col].is_dirty = false;
             return;
@@ -255,6 +259,7 @@ void mark_dirty(cell **sheet, short_int row, short_int col) {
     }
     
     // Add to topological sort (cells to recalculate in correct order)
+    // printf("Adding (%d, %d) to topological order\n", row, col);
     sheet[row][col].is_in_stack = false;
     Node *new_node = (Node *)malloc(sizeof(Node));
     new_node->row = row;
@@ -267,26 +272,6 @@ void mark_dirty(cell **sheet, short_int row, short_int col) {
         new_node->next = dfs_topo;
         dfs_topo = new_node;
     }
-}
-
-/**
- * Reverses a linked list
- * * head Head of the list to reverse
- * * New head of the reversed list
- */
-Node* reverse_list(Node *head) {
-    Node *prev = NULL;
-    Node *current = head;
-    Node *next = NULL;
-    
-    while (current != NULL) {
-        next = current->next;
-        current->next = prev;
-        prev = current;
-        current = next;
-    }
-    
-    return prev;
 }
 
 /**
@@ -370,6 +355,12 @@ short_int change(cell **sheet, short_int row, short_int col, ParsedInput previou
     
     // Update cell dependencies
     update_dependencies(sheet, row, col, previous_parsed);
+    // for(int i=0; i<3; i++){
+    //     for(int j=0; j<3; j++){
+    //         printf("Cell (%d, %d) dependencies: ", i, j);
+    //         print_dependencies(sheet, i, j);
+    //     }
+    // }
     
     // Clean up previous calculation state if needed
     if (dfs_topo != NULL) {
@@ -384,8 +375,17 @@ short_int change(cell **sheet, short_int row, short_int col, ParsedInput previou
         // Revert to previous state if cycle detected
         free_dirty_array(sheet);
         ParsedInput bad_parsed = sheet[row][col].parsed;
+        // printf("bad_parsed: %c\n", bad_parsed.expression_type); 
+        // printf("Previous parsed: %c\n", previous_parsed.expression_type);
         sheet[row][col].parsed = previous_parsed;
         update_dependencies(sheet, row, col, bad_parsed);
+        // printf("New dependencies after cycle: ");
+        // for(int i=0; i<3; i++){
+        //     for(int j=0; j<3; j++){
+        //         printf("Cell (%d, %d) dependencies: ", i, j);
+        //         print_dependencies(sheet, i, j);
+        //     }
+        // }
         sheet[row][col].value = old_value;
         return 0;
     }

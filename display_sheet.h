@@ -70,7 +70,7 @@ void display_sheet(cell ***sheet, short_int rows, short_int cols,
         
         // Print cell values
         for (short_int j = sc; j < ec; j++) {
-            if ((*sheet)[i][j].value == INT16_MIN) {
+            if ((*sheet)[i][j].value == INT32_MIN) {
                 printf("ERR\t");
             } else {
                 printf("%d\t", (*sheet)[i][j].value);
