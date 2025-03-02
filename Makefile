@@ -15,6 +15,10 @@ EXEC = $(BUILD_DIR)/$(EXECUTABLE)
 TEST_SRC = testsuite.c
 TEST_EXEC = $(BUILD_DIR)/testsuite
 
+# LaTeX report settings
+REPORT_SRC = report.tex
+REPORT_PDF = report.pdf
+
 # Default target
 all: $(EXEC)
 
@@ -35,14 +39,21 @@ $(TEST_EXEC): $(TEST_SRC) | $(BUILD_DIR)
 test: $(EXEC) $(TEST_EXEC)
 	$(TEST_EXEC)
 
-# Generate report (placeholder for LaTeX compilation)
-report:
-	# Placeholder for LaTeX compilation
-	echo "Report generation placeholder"
+# Generate PDF report from LaTeX source
+report: $(REPORT_PDF)
+
+$(REPORT_PDF): $(REPORT_SRC)
+	pdflatex $(REPORT_SRC)
+	pdflatex $(REPORT_SRC)  # Run twice for proper cross-references
 
 # Clean generated files
 clean:
 	rm -rf $(BUILD_DIR)
 	rm -f output.txt
+	rm -f *.aux *.log *.out *.toc *.lof *.lot
 
-.PHONY: all clean test report
+# Very clean - also removes the PDF
+distclean: clean
+	rm -f $(REPORT_PDF)
+
+.PHONY: all clean distclean test report

@@ -765,17 +765,8 @@ void test_mark_dirty_and_cycle_detection() {
 
 void test_recalculate() {
     // Initialize test spreadsheet
-    cell **sheet = malloc(5 * sizeof(cell *));
-    for (int i = 0; i < 5; i++) {
-        sheet[i] = malloc(5 * sizeof(cell));
-        for (int j = 0; j < 5; j++) {
-            sheet[i][j].value = 0;
-            sheet[i][j].dependencies = NULL;
-            sheet[i][j].is_dirty = false;
-            sheet[i][j].is_in_stack = false;
-            initialize_parsed_input(&sheet[i][j].parsed);
-        }
-    }
+    cell **sheet;
+    initialize_sheet(&sheet, 5, 5);
     
     // Reset the global dfs_topo variable to ensure clean test state
     dfs_topo = NULL;
@@ -785,20 +776,12 @@ void test_recalculate() {
     
     // Setup a dependency chain: A1 -> B2 -> C3
     // A1 = B2 + 5
-    sheet[0][0].parsed.expression_type = '1';
-    sheet[0][0].parsed.operator = '+';
-    sheet[0][0].parsed.is_value_1 = 0;
-    sheet[0][0].parsed.is_value_2 = 1;
-    sheet[0][0].parsed.content.expression_data.expression_cell[0] = (1 << 16) + 1; // B2
-    sheet[0][0].parsed.content.expression_data.expression_cell[1] = 5; // Store literal in expression_cell since there's no separate field
-    
+    short_int x = parse_input("A1=B2+5", &sheet[0][0].parsed, 5, 5);
+    assert(x == 1);
     // B2 = C3 * 2
-    sheet[1][1].parsed.expression_type = '1';
-    sheet[1][1].parsed.operator = '*';
-    sheet[1][1].parsed.is_value_1 = 0;
-    sheet[1][1].parsed.is_value_2 = 1;
-    sheet[1][1].parsed.content.expression_data.expression_cell[0] = (2 << 16) + 2; // C3
-    sheet[1][1].parsed.content.expression_data.expression_cell[1] = 2; // Store literal in expression_cell
+    short_int y = parse_input("B2=C3*2", &sheet[1][1].parsed, 5, 5);
+    assert(y == 1);
+    
     
     // Setup dependencies correctly (who is dependent on whom)
     add_dependency(sheet, 1, 1, 0, 0); // B2 has A1 as dependent
@@ -822,7 +805,7 @@ void test_recalculate() {
     assert(sheet[2][2].value == 10); // C3 = 10
     
     // B2 should be 20 (C3 * 2)
-    
+
     assert(sheet[1][1].value == 20); // B2 = C3 * 2 = 10 * 2 = 20
     
     // A1 should be 25 (B2 + 5)
@@ -850,17 +833,8 @@ void test_recalculate() {
 
 void test_change() {
     // Initialize test spreadsheet
-    cell **sheet = malloc(5 * sizeof(cell *));
-    for (int i = 0; i < 5; i++) {
-        sheet[i] = malloc(5 * sizeof(cell));
-        for (int j = 0; j < 5; j++) {
-            sheet[i][j].value = 0;
-            sheet[i][j].dependencies = NULL;
-            sheet[i][j].is_dirty = false;
-            sheet[i][j].is_in_stack = false;
-            initialize_parsed_input(&sheet[i][j].parsed);
-        }
-    }
+    cell **sheet;
+    initialize_sheet(&sheet, 5, 5);
     
     // Reset global variables
     cycle = false;
@@ -876,9 +850,8 @@ void test_change() {
     initialize_parsed_input(&previous);
     
     // Set A1 to reference B2
-    sheet[0][0].parsed.expression_type = '0';
-    sheet[0][0].parsed.is_value_1 = 0;
-    sheet[0][0].parsed.content.value_data.value = (1 << 16) + 1; // B2
+    short_int x = parse_input("A1=B2", &sheet[0][0].parsed, 5, 5);
+    assert(x == 1);
     
     // Change A1
     short_int result = change(sheet, 0, 0, previous);
@@ -895,9 +868,8 @@ void test_change() {
     // Now create a cycle
     // Set B2 to reference A1
     previous = sheet[1][1].parsed;
-    sheet[1][1].parsed.expression_type = '0';
-    sheet[1][1].parsed.is_value_1 = 0;
-    sheet[1][1].parsed.content.value_data.value = (0 << 16) + 0; // A1
+    short_int y = parse_input("B2=A1", &sheet[1][1].parsed, 5, 5);
+    assert(y == 1);
     
     // Try to change B2
     result = change(sheet, 1, 1, previous);
@@ -914,12 +886,8 @@ void test_change() {
     
     // Setup B2 = C3 * 2
     previous = sheet[1][1].parsed;
-    sheet[1][1].parsed.expression_type = '1';
-    sheet[1][1].parsed.operator = '*';
-    sheet[1][1].parsed.is_value_1 = 0;
-    sheet[1][1].parsed.is_value_2 = 1;
-    sheet[1][1].parsed.content.expression_data.expression_cell[0] = (2 << 16) + 2; // C3
-    sheet[1][1].parsed.content.expression_data.expression_cell[1] = 2;
+    short_int z = parse_input("B2=C3*2", &sheet[1][1].parsed, 5, 5);
+    assert(z == 1);
     
     result = change(sheet, 1, 1, previous);
     assert(result == 1);
@@ -927,12 +895,9 @@ void test_change() {
     
     // Setup A1 = B2 + 5
     previous = sheet[0][0].parsed;
-    sheet[0][0].parsed.expression_type = '1';
-    sheet[0][0].parsed.operator = '+';
-    sheet[0][0].parsed.is_value_1 = 0;
-    sheet[0][0].parsed.is_value_2 = 1;
-    sheet[0][0].parsed.content.expression_data.expression_cell[0] = (1 << 16) + 1; // B2
-    sheet[0][0].parsed.content.expression_data.expression_cell[1] = 5;
+    short_int w = parse_input("A1=B2+5", &sheet[0][0].parsed, 5, 5);
+    assert(w == 1);
+    
     
     result = change(sheet, 0, 0, previous);
     assert(result == 1);
@@ -940,9 +905,8 @@ void test_change() {
     
     // Now change C3 and check if A1 and B2 are updated
     previous = sheet[2][2].parsed;
-    sheet[2][2].parsed.expression_type = '0';
-    sheet[2][2].parsed.is_value_1 = 1;
-    sheet[2][2].parsed.content.value_data.value = 15; // C3 = 15
+    short_int v = parse_input("C3=15", &sheet[2][2].parsed, 5, 5);
+    assert(v == 1);
     
     result = change(sheet, 2, 2, previous);
     assert(result == 1);
@@ -979,23 +943,39 @@ void test_change() {
 
 
 int main() {
+    printf("Running tests...\n");
     test_is_valid_cell();
+    printf("is_valid_cell passed\n");
     test_parse_cell();
+    printf("parse_cell passed\n");
     test_string_to_nat();
+    printf("string_to_nat passed\n");
     test_stack();
+    printf("stack passed\n");
     test_parse_value();
+    printf("parse_value passed\n");
     test_evaluate_range();
+    printf("evaluate_range passed\n");
     test_handle_expression();
+    printf("handle_expression passed\n");
     test_process_input();
+    printf("process_input passed\n");
     
     // // Add graph checker tests
     test_add_dependency();
+    printf("add_dependency passed\n");
     test_free_from_list();
+    printf("free_from_list passed\n");
     test_free_parents();
+    printf("free_parents passed\n");
     test_update_dependencies();
+    printf("update_dependencies passed\n");
     test_mark_dirty_and_cycle_detection();
-    // test_recalculate();
-    // test_change();
+    printf("mark_dirty_and_cycle_detection passed\n");
+    test_recalculate();
+    printf("recalculate passed\n");
+    test_change();
+    printf("change passed\n");
 
     int status = system("./testing.sh");
     return status;
