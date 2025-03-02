@@ -427,3 +427,30 @@ spawn target/release/spreadsheet 3 3
 3	0	2	0	
 [5.0] (ok) > q
 *****
+spawn target/release/spreadsheet 3 3
+	A	B	C	
+1	0	0	0	
+2	0	0	0	
+3	0	0	0	
+[0.0] (ok) > B2=MAX(a1:b1)  
+	A	B	C	
+1	0	0	0	
+2	0	0	0	
+3	0	0	0	
+[0.0] (ok) > a1=0/0  
+	A	B	C	
+1	ERR	0	0	
+2	0	ERR	0	
+3	0	0	0	
+[0.0] (ok) > c3=c1/c2  
+	A	B	C	
+1	ERR	0	0	
+2	0	ERR	0	
+3	0	0	ERR	
+[0.0] (ok) > b3=b2-c3  
+	A	B	C	
+1	ERR	0	0	
+2	0	ERR	0	
+3	0	ERR	ERR	
+[0.0] (ok) > q
+*****
