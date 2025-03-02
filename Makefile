@@ -24,11 +24,11 @@ $(BUILD_DIR):
 
 # Build the executable in release directory
 $(EXEC): $(SRC) $(HEADERS) | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -o $@ $(SRC)
+	$(CC) $(CFLAGS) -o $@ $(SRC) -lm
 
 # Build the test suite
 $(TEST_EXEC): $(TEST_SRC) | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -o $@ $(TEST_SRC)
+	$(CC) $(CFLAGS) -o $@ $(TEST_SRC) -lm
 	chmod +x testing.sh
 
 # Target to build and run tests
