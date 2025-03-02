@@ -177,10 +177,13 @@ short_int is_valid_cell(const char *cell) {
 
     if(cell[i]=='0') return 0; // Column part can't start with 0
     // Ensure the row part contains digits
+    int j = 0;
     while (cell[i]) {
         if (!isdigit(cell[i])) return 0; // Invalid character in row part
         i++;
+        j++;
     }
+    if (j == 0) return 0; // No digits present
     return 1; // Valid cell reference
 }
 
@@ -236,9 +239,9 @@ double get_time() {
 /**
  * Convert a string to a natural number, or return -1 if invalid
  */
-int string_to_nat(char *s) {
-    short_int cur = 0;
-    short_int inval = 0;
+short_int string_to_nat(char *s) {
+    int cur = 0;
+    int inval = 0;
     
     while (*s != '\0') {
         if (*s > '9' || *s < '0') {
@@ -248,8 +251,12 @@ int string_to_nat(char *s) {
         cur *= 10;
         cur += (*s - '0');
         s++;
+        if (cur > 18278){
+            return -1;
+        }
     }
     
+
     if (cur == 0) inval = 1;
     
     return inval ? -1 : cur;
@@ -282,7 +289,11 @@ void stack_pop(stack_top *st, cell **sheet) {
 }
 
 void top(stack_top *st, short_int *row, short_int *col) {
-    if (st->top == NULL) return;
+    if (st->top == NULL){
+        *row = -1;
+        *col = -1;
+        return;
+    }
     *row = st->top->row;
     *col = st->top->col;
 }

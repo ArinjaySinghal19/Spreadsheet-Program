@@ -223,7 +223,7 @@ short_int handle_expression(ParsedInput *parsed, char *expr, short_int sheet_row
         return 1;
     }
     
-    return 0;  // Successfully parsed value
+    return 0;  // Unrecognized expression
 }
 
 /**
