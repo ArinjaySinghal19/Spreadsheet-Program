@@ -1,4 +1,4 @@
-7
+8
 10 10 5
 scroll_to H10
 J10=I10+I10
@@ -87,4 +87,11 @@ D2=SLEEP(C3)
 D3=4
 A03=5
 A1=1
+3 3 5
+C2=B1+1  
+B3=SLEEP(B1+5)  
+B3=SLEEP(B1)  
+C1=SLEEP(C2)  
+B1=2
+
 
