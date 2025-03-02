@@ -200,8 +200,8 @@ short_int parse_cell(const char *cell, int *value, short_int sheet_rows, short_i
     strcpy(row_part, cell + i);
 
     // Convert column part to index (e.g., "A"=0, "AA"=26)
-    short_int col = 0, row = 0;
-    for (short_int j = 0; col_part[j] != '\0'; j++) {
+    int col = 0, row = 0;
+    for (int j = 0; col_part[j] != '\0'; j++) {
         col = col * 26 + (toupper(col_part[j]) - 'A' + 1);
     }
     
@@ -210,14 +210,13 @@ short_int parse_cell(const char *cell, int *value, short_int sheet_rows, short_i
     
     if (row_part[0] == '\0') return 0; // Invalid row part
     
-    for (short_int i = 1; row_part[i] != '\0'; i++) {
+    for (int i = 1; row_part[i] != '\0'; i++) {
         if (!isdigit(row_part[i])) {
             return 0;
         }
     }
     
     row = atoi(row_part) - 1; // Convert to 0-based indexing
-    
     if (row < 0 || row >= sheet_rows || col < 0 || col >= sheet_cols) return 0; // Out of bounds
     
     *value = (row << 16) | col;
