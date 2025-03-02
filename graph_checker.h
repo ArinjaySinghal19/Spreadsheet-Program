@@ -116,7 +116,7 @@ void free_parents(cell **sheet, short_int row, short_int col, ParsedInput previo
         short_int st_row = previous_parsed.content.function_data.function_range[0] >> 16;
         short_int st_col = previous_parsed.content.function_data.function_range[0] & 0xFFFF;
         short_int end_row = previous_parsed.content.function_data.function_range[1] >> 16;
-        short_int end_col = previous_parsed.content.function_data.function_range[0] & 0xFFFF;
+        short_int end_col = previous_parsed.content.function_data.function_range[1] & 0xFFFF;
         // printf("Removing dependencies from range (%d, %d) to (%d, %d)\n", st_row, st_col, end_row, end_col);
         for (short_int i = st_row; i <= end_row; i++) {
             for (short_int j = st_col; j <= end_col; j++) {
@@ -183,7 +183,6 @@ void update_dependencies(cell **sheet, short_int row, short_int col, ParsedInput
         short_int st_col = (parsed.content.function_data.function_range[0]) & 0xFFFF;
         short_int end_row = (parsed.content.function_data.function_range[1]) >> 16;
         short_int end_col = (parsed.content.function_data.function_range[1]) & 0xFFFF;
-        
         for (short_int i = st_row; i <= end_row; i++) {
             for (short_int j = st_col; j <= end_col; j++) {
                 add_dependency(sheet, i, j, row, col);
@@ -344,7 +343,7 @@ short_int change(cell **sheet, short_int row, short_int col, ParsedInput previou
     
     // Update cell dependencies
     update_dependencies(sheet, row, col, previous_parsed);
-    
+
     // Clean up previous calculation state if needed
     if (dfs_topo != NULL) {
         free_dirty_array(sheet);
