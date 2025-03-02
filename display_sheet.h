@@ -107,15 +107,19 @@ short_int process_display(short_int status, bool *toggle_display, int *sr_sc,
     } 
     else if (status == 8) {
         // Scroll down
-        sr = sr + 10;
-        short_int er = min(sr + 10, rows);
-        sr = max(er - 10, 0);
+        if((sr + 10) < rows){
+            sr = sr + 10;
+            short_int er = min(sr + 10, rows);
+            sr = max(er - 10, 0);
+        }
     } 
     else if (status == 9) {
         // Scroll right
-        sc = sc + 10;
-        short_int ec = min(sc + 10, cols);
-        sc = max(ec - 10, 0);
+        if((sc + 10) < cols){
+            sc = sc + 10;
+            short_int ec = min(sc + 10, cols);
+            sc = max(ec - 10, 0);
+        }
     } 
     else if (status == 10) {
         // Turn display off
