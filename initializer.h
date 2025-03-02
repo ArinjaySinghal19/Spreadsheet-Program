@@ -256,19 +256,57 @@ int string_to_nat(char *s) {
 }
 
 
+typedef struct stack {
+    short_int row;
+    short_int col;
+    struct stack *next;
+} stack;
 
+typedef struct stack_top {
+    stack *top;
+} stack_top;
 
-// int main(){
+void stack_push(stack_top *st, short_int row, short_int col) {
+    stack *new_node = (stack *)malloc(sizeof(stack));
+    new_node->row = row;
+    new_node->col = col;
+    new_node->next = st->top;
+    st->top = new_node;
+}
 
-//     printf("size of cell: %lu\n", sizeof(cell));
-//     printf("size of parsed: %lu\n", sizeof(ParsedInput));
-//     printf("size of node: %lu\n", sizeof(Node));
-//     printf("size of Node*: %lu\n", sizeof(Node*));
-//     printf("size of short_int: %lu\n", sizeof(short_int));
-//     printf("size of test struct: %lu\n", sizeof(test));
-//     printf("size of expression_data struct: %lu\n", sizeof(expression_data));
-//     printf("size of test cell struct: %lu\n", sizeof(testcell));
+void stack_pop(stack_top *st, cell **sheet) {
+    if (st->top == NULL) return;
+    stack *temp = st->top;
+    st->top = st->top->next;
+    free(temp);
+}
 
-    
+void top(stack_top *st, short_int *row, short_int *col) {
+    if (st->top == NULL) return;
+    *row = st->top->row;
+    *col = st->top->col;
+}
 
-// }
+stack_top *initialize_stack() {
+    stack_top *st = (stack_top *)malloc(sizeof(stack_top));
+    st->top = NULL;
+    return st;
+}
+
+void free_stack(stack_top *st, cell **sheet) {
+    while (st->top != NULL) {
+        sheet[st->top->row][st->top->col].is_in_stack = false;
+        sheet[st->top->row][st->top->col].is_dirty = false;
+        stack_pop(st, sheet);
+    }
+    free(st);
+}
+
+void print_stack(stack_top *st) {
+    stack *temp = st->top;
+    while (temp != NULL) {
+        printf("(%d, %d) ", temp->row, temp->col);
+        temp = temp->next;
+    }
+    printf("\n");
+}

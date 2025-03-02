@@ -218,74 +218,6 @@ void print_dependencies(cell **sheet, short_int row, short_int col) {
     printf("\n");
 }
 
-/**
- * Marks a cell and its dependents as dirty (needing recalculation)
- * Also performs cycle detection
- * * sheet The spreadsheet
- * * row Row of the cell
- * * col Column of the cell
- */
-void mark_dirty(cell **sheet, short_int row, short_int col) {
-    sheet[row][col].is_dirty = true;
-    sheet[row][col].is_in_stack = true;
-    // printf("Marking (%d, %d) as dirty\n", row, col);
-    
-    // Check all dependent cells
-    Node *temp = sheet[row][col].dependencies;
-    while (temp != NULL) {
-        // Check for cycles
-        if (sheet[temp->row][temp->col].is_in_stack) {
-            // printf("Cycle detected at (%d, %d)\n", temp->row, temp->col);
-            sheet[row][col].is_in_stack = false;
-            sheet[row][col].is_dirty = false;
-            cycle = true;
-            return;
-        }
-        
-        // Mark dependent cells as dirty
-        if (!sheet[temp->row][temp->col].is_dirty) {
-            mark_dirty(sheet, temp->row, temp->col);
-        }
-        
-        // Propagate cycle detection
-        if (cycle) {
-            // printf("Propagating cycle detection, clearing (%d, %d)\n", row, col);
-            sheet[row][col].is_in_stack = false;
-            sheet[row][col].is_dirty = false;
-            return;
-        }
-        
-        temp = temp->next;
-    }
-    
-    // Add to topological sort (cells to recalculate in correct order)
-    // printf("Adding (%d, %d) to topological order\n", row, col);
-    sheet[row][col].is_in_stack = false;
-    Node *new_node = (Node *)malloc(sizeof(Node));
-    new_node->row = row;
-    new_node->col = col;
-    new_node->next = NULL;
-    
-    if (dfs_topo == NULL) {
-        dfs_topo = new_node;
-    } else {
-        new_node->next = dfs_topo;
-        dfs_topo = new_node;
-    }
-}
-
-/**
- * Frees a topological order linked list
- * * top_order Head of the list to free
- */
-void free_top_order(Node *top_order) {
-    Node *temp = top_order;
-    while (temp != NULL) {
-        Node *next = temp->next;
-        free(temp);
-        temp = next;
-    }
-}
 
 /**
  * Debug utility to print topological ordering
@@ -299,6 +231,63 @@ void print_top_order(Node *top_order) {
     }
     printf("\n");
 }
+
+/**
+ * Inserts a cell into the topological order list
+ * * top_order Head of the topological order list
+ * * row Row of the cell
+ * * col Column of the cell
+ */
+void insert_to_topo(Node **top_order, short_int row, short_int col){
+    Node *new_node = (Node *)malloc(sizeof(Node));
+    new_node->row = row;
+    new_node->col = col;
+    new_node->next = *top_order;
+    *top_order = new_node;
+}
+
+
+/**
+ * Marks a cell and its dependents as dirty (needing recalculation)
+ * Also performs cycle detection
+ * * sheet The spreadsheet
+ * * row Row of the cell
+ * * col Column of the cell
+ */
+void mark_dirty(cell **sheet, short_int row, short_int col) {
+    stack_top *st = initialize_stack();
+    stack_push(st, row, col);
+    while(st->top != NULL){
+        short_int row, col;
+        top(st, &row, &col);
+        if(!sheet[row][col].is_dirty && !sheet[row][col].is_in_stack){
+            sheet[row][col].is_in_stack = true;
+            Node *temp = sheet[row][col].dependencies;
+            while(temp != NULL){
+                if(sheet[temp->row][temp->col].is_in_stack){
+                    cycle = true;
+                    free_stack(st, sheet);
+                    return;
+                }
+                if(!sheet[temp->row][temp->col].is_dirty){
+                    stack_push(st, temp->row, temp->col);
+                }
+                temp = temp->next;
+            }
+        }
+        else{
+            stack_pop(st, sheet);
+            if(sheet[row][col].is_in_stack){
+                sheet[row][col].is_dirty = true;
+                sheet[row][col].is_in_stack = false;
+                insert_to_topo(&dfs_topo, row, col);
+            }
+        }
+    }
+    free_stack(st, sheet);
+}
+
+
 
 /**
  * Cleans up the dirty cell tracking
@@ -355,19 +344,12 @@ short_int change(cell **sheet, short_int row, short_int col, ParsedInput previou
     
     // Update cell dependencies
     update_dependencies(sheet, row, col, previous_parsed);
-    // for(int i=0; i<3; i++){
-    //     for(int j=0; j<3; j++){
-    //         printf("Cell (%d, %d) dependencies: ", i, j);
-    //         print_dependencies(sheet, i, j);
-    //     }
-    // }
     
     // Clean up previous calculation state if needed
     if (dfs_topo != NULL) {
         free_dirty_array(sheet);
     }
-    
-    // Mark cells that need recalculation
+
     mark_dirty(sheet, row, col);
     
     // Check for circular references
@@ -375,20 +357,12 @@ short_int change(cell **sheet, short_int row, short_int col, ParsedInput previou
         // Revert to previous state if cycle detected
         free_dirty_array(sheet);
         ParsedInput bad_parsed = sheet[row][col].parsed;
-        // printf("bad_parsed: %c\n", bad_parsed.expression_type); 
-        // printf("Previous parsed: %c\n", previous_parsed.expression_type);
         sheet[row][col].parsed = previous_parsed;
         update_dependencies(sheet, row, col, bad_parsed);
-        // printf("New dependencies after cycle: ");
-        // for(int i=0; i<3; i++){
-        //     for(int j=0; j<3; j++){
-        //         printf("Cell (%d, %d) dependencies: ", i, j);
-        //         print_dependencies(sheet, i, j);
-        //     }
-        // }
         sheet[row][col].value = old_value;
         return 0;
     }
+
     
     // Recalculate affected cells
     recalculate(sheet, dfs_topo);
