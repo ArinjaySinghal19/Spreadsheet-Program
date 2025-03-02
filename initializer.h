@@ -176,10 +176,13 @@ short_int is_valid_cell(const char *cell) {
     if (i == 0) return 0; // No letters present
 
     // Ensure the row part contains digits
+    int j = 0;
     while (cell[i]) {
         if (!isdigit(cell[i])) return 0; // Invalid character in row part
         i++;
+        j++;
     }
+    if (j == 0) return 0; // No digits present
     return 1; // Valid cell reference
 }
 
@@ -253,8 +256,6 @@ short_int string_to_nat(char *s) {
     }
     
 
-    
-    
     if (cur == 0) inval = 1;
     
     return inval ? -1 : cur;
@@ -287,7 +288,11 @@ void stack_pop(stack_top *st, cell **sheet) {
 }
 
 void top(stack_top *st, short_int *row, short_int *col) {
-    if (st->top == NULL) return;
+    if (st->top == NULL){
+        *row = -1;
+        *col = -1;
+        return;
+    }
     *row = st->top->row;
     *col = st->top->col;
 }
