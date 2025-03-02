@@ -175,6 +175,7 @@ short_int is_valid_cell(const char *cell) {
     while (isalpha(cell[i])) i++;
     if (i == 0) return 0; // No letters present
 
+    if(cell[i]=='0') return 0; // Column part can't start with 0
     // Ensure the row part contains digits
     while (cell[i]) {
         if (!isdigit(cell[i])) return 0; // Invalid character in row part
