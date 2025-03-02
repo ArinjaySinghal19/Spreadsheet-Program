@@ -235,9 +235,9 @@ double get_time() {
 /**
  * Convert a string to a natural number, or return -1 if invalid
  */
-int string_to_nat(char *s) {
-    short_int cur = 0;
-    short_int inval = 0;
+short_int string_to_nat(char *s) {
+    int cur = 0;
+    int inval = 0;
     
     while (*s != '\0') {
         if (*s > '9' || *s < '0') {
@@ -247,7 +247,13 @@ int string_to_nat(char *s) {
         cur *= 10;
         cur += (*s - '0');
         s++;
+        if (cur > 18278){
+            return -1;
+        }
     }
+    
+
+    
     
     if (cur == 0) inval = 1;
     
