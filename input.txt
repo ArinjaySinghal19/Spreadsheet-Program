@@ -1,4 +1,4 @@
-8
+9
 10 10 5
 scroll_to H10
 J10=I10+I10
@@ -93,5 +93,10 @@ B3=SLEEP(B1+5)
 B3=SLEEP(B1)  
 C1=SLEEP(C2)  
 B1=2
+3 3 4
+B2=MAX(a1:b1)  
+a1=0/0  
+c3=c1/c2  
+b3=b2-c3  
 
 
